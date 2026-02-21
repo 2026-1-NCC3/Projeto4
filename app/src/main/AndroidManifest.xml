@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.front_pi">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+        >
+
+        <!-- Tela de Login (inicial) -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Tela de Cadastro -->
+        <activity
+            android:name=".CadastroActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Recuperação de senha -->
+        <activity
+            android:name=".RecuperacaoSenhaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- Aceite de Termos LGPD -->
+        <activity
+            android:name=".TermosActivity"
+            android:exported="false" />
+
+        <!-- Tela Principal com Fragments -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- Tela de Detalhes do Exercício -->
+        <activity
+            android:name=".ExercicioDetalheActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
+        <!-- Tela de Registro de Execução -->
+        <activity
+            android:name=".RegistroExecucaoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"
+            android:parentActivityName=".ExercicioDetalheActivity" />
+
+    </application>
+
+</manifest>

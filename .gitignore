@@ -158,3 +158,10 @@ fabric.properties
 !/gradle/wrapper/gradle-wrapper.jar
 
 # End of https://www.toptal.com/developers/gitignore/api/androidstudio,gradle
+
+.env
+**/ .env
+
+# Ignorar node_modules em qualquer nível do projeto
+node_modules/
+**/node_modules/

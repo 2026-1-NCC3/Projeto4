@@ -23,6 +23,7 @@ public class DataManager {
     private static final String KEY_PACIENTE      = "paciente_logado";
     private static final String KEY_REGISTROS     = "registros_execucao";
     private static final String KEY_TERMOS        = "termos_aceitos";
+    private static final String KEY_TOKEN = "token_jwt";
 
     private static DataManager instance;
     private final SharedPreferences prefs;
@@ -62,6 +63,14 @@ public class DataManager {
 
     public boolean isLogado() {
         return prefs.contains(KEY_PACIENTE);
+    }
+
+    public void salvarToken(String token) {
+        prefs.edit().putString(KEY_TOKEN, token).apply();
+    }
+
+    public String getToken() {
+        return prefs.getString(KEY_TOKEN, null);
     }
 
     // ──────────────────────── TERMOS ────────────────────────

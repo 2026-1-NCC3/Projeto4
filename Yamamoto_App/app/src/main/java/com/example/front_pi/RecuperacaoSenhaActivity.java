@@ -7,6 +7,8 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
+import androidx.core.view.WindowCompat;
 
 /**
  * Activity de Recuperação de Senha.
@@ -15,12 +17,12 @@ import androidx.appcompat.app.AppCompatActivity;
 public class RecuperacaoSenhaActivity extends AppCompatActivity {
 
     private EditText emailRecuperacao;
-    private Button btnEnviar;
+    private CardView btnEnviar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setDecorFitsSystemWindows(false);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_recuperacao_senha);
 
         emailRecuperacao = findViewById(R.id.emailRecuperacao);

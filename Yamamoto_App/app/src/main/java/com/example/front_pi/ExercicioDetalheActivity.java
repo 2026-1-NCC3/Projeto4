@@ -3,7 +3,6 @@ package com.example.front_pi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,18 +11,21 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 
-/**
- * Activity de Detalhes do Exercício.
- * Recebe objeto Exercicio via Intent extra (explícita).
- * Demonstra Intent implícita para abrir vídeo no YouTube/browser.
- */
 public class ExercicioDetalheActivity extends AppCompatActivity {
 
     private TextView tvNome, tvCategoria, tvDescricao, tvOrientacoes,
-                     tvFrequencia, tvDuracao, tvSeries, tvCargaSemanal;
+            tvFrequencia, tvDuracao, tvSeries, tvCargaSemanal;
     private ImageView ivExercicio;
     private Button btnVerVideo, btnRegistrar;
-    private Exercicio exercicio;
+
+    // Dados recebidos via Intent
+    private int    prescricaoId;
+    private int    exercicioId;
+    private String titulo;
+    private String descricao;
+    private String mediaUrl;
+    private String instrucoes;
+    private int    frequencia;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,9 +33,17 @@ public class ExercicioDetalheActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_exercicio_detalhe);
 
-        // Recupera o objeto passado via Intent
-        exercicio = (Exercicio) getIntent().getSerializableExtra("exercicio");
-        if (exercicio == null) {
+        // Recupera os dados passados pelo PlanoFragment via Intent
+        prescricaoId = getIntent().getIntExtra("prescricao_id", -1);
+        exercicioId  = getIntent().getIntExtra("exercise_id", -1);
+        titulo       = getIntent().getStringExtra("exercise_title");
+        descricao    = getIntent().getStringExtra("exercise_desc");
+        mediaUrl     = getIntent().getStringExtra("exercise_media");
+        instrucoes   = getIntent().getStringExtra("instructions");
+        frequencia   = getIntent().getIntExtra("frequency", 0);
+
+        // Se não veio prescricaoId válido, fecha a tela
+        if (prescricaoId == -1) {
             finish();
             return;
         }
@@ -58,50 +68,58 @@ public class ExercicioDetalheActivity extends AppCompatActivity {
     }
 
     private void preencherDados() {
-        tvNome.setText(exercicio.getNome());
-        tvCategoria.setText(exercicio.getCategoria().getDescricao());
-        tvDescricao.setText(exercicio.getDescricao());
-        tvOrientacoes.setText(exercicio.getOrientacoes());
-        tvFrequencia.setText(exercicio.getFrequenciaFormatada());
-        tvDuracao.setText(exercicio.getDuracaoMinutos() + " minutos por sessão");
-        tvSeries.setText(exercicio.getSeriesRecomendadas() + " séries × " +
-                         exercicio.getRepeticoesRecomendadas() + " repetições");
-        // Dado numérico: carga semanal
-        tvCargaSemanal.setText("Carga semanal estimada: " +
-                               exercicio.getCargaSemanalMinutos() + " minutos");
+        tvNome.setText(titulo != null ? titulo : "Sem título");
 
-        // Imagem placeholder (em produção viria da lista de imagens do exercício)
+        // Categoria não existe no backend — usa "Exercício RPG" como padrão
+        tvCategoria.setText("Exercício RPG");
+
+        tvDescricao.setText(descricao != null ? descricao : "Sem descrição");
+
+        tvOrientacoes.setText(instrucoes != null && !instrucoes.isEmpty()
+                ? instrucoes : "Sem instruções específicas");
+
+        tvFrequencia.setText(frequencia + "x por semana");
+
+        // Duração e séries não existem no backend — mostra mídia disponível
+        tvDuracao.setText(mediaUrl != null && !mediaUrl.isEmpty()
+                ? "Mídia disponível" : "Sem mídia");
+
+        tvSeries.setText("ID da prescrição: " + prescricaoId);
+
+        tvCargaSemanal.setText("Frequência semanal: " + frequencia + " sessões");
+
         ivExercicio.setImageResource(R.drawable.ic_exercicio_placeholder);
     }
 
     private void configurarBotoes() {
 
-        // Botão "Ver Vídeo" — Intent IMPLÍCITA para abrir URL no browser/YouTube
+        // Botão "Ver Vídeo" — Intent implícita para abrir mídia no browser
         btnVerVideo.setOnClickListener(v -> {
-            String url = exercicio.getUrlVideo();
+            String url = mediaUrl;
+
+            // Se não tiver mídia, busca no YouTube pelo título
             if (url == null || url.isEmpty()) {
-                // Exemplo de busca no YouTube com Intent implícita
                 url = "https://www.youtube.com/results?search_query=RPG+Reeducacao+Postural+Global+"
-                      + Uri.encode(exercicio.getNome());
+                        + Uri.encode(titulo != null ? titulo : "");
             }
+
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-            // Verifica se há app capaz de abrir a Intent
             if (intent.resolveActivity(getPackageManager()) != null) {
-                startActivity(intent); // Intent implícita — sistema escolhe o app
+                startActivity(intent);
             } else {
                 Toast.makeText(this, "Nenhum navegador encontrado.", Toast.LENGTH_SHORT).show();
             }
         });
 
-        // Botão "Registrar Execução" — Intent explícita
+        // Botão "Registrar Execução" — passa prescricaoId para o check-in
         btnRegistrar.setOnClickListener(v -> {
             Intent intent = new Intent(ExercicioDetalheActivity.this,
-                                       RegistroExecucaoActivity.class);
-            intent.putExtra("exercicio", exercicio);
+                    RegistroExecucaoActivity.class);
+            intent.putExtra("prescricao_id",  prescricaoId);
+            intent.putExtra("exercise_title", titulo);
             startActivity(intent);
         });
 
-        // Botão Voltar
         findViewById(R.id.btnVoltar).setOnClickListener(v -> finish());
     }
 }

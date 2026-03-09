@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,12 +13,16 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.api.ApiService;
+import com.example.api.LogResponse;
+import com.example.api.ApiClient;
+
 import java.util.List;
 
-/**
- * Fragment de Histórico de Execuções.
- * Exibe lista ordenada de registros (Estruturas de Dados) e análise numérica.
- */
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class HistoricoFragment extends Fragment {
 
     private RecyclerView recyclerHistorico;
@@ -48,28 +53,61 @@ public class HistoricoFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        carregarHistorico(); // Atualiza ao voltar de RegistroExecucaoActivity
+        carregarHistorico(); // Recarrega ao voltar do RegistroExecucaoActivity
     }
 
     private void carregarHistorico() {
-        List<RegistroExecucao> registros = dataManager.getRegistros();
+        Paciente p    = dataManager.getPacienteLogado();
+        String  token = dataManager.getToken();
 
-        // Análise numérica: média de dor e total executados
-        double mediaDor = dataManager.getMediaDor();
-        int totalExec   = dataManager.getTotalExecutados();
+        if (p == null || token == null) return;
 
-        tvMediaDor.setText(mediaDor < 0 ? "—" :
-            String.format("%.1f / 10", mediaDor));
-        tvTotalExecutados.setText(totalExec + " sessão(ões)");
+        int patientId = Integer.parseInt(p.getId());
 
-        if (registros.isEmpty()) {
+        ApiService api = ApiClient.getInstance().create(ApiService.class);
+        api.getHistorico(patientId, "Bearer " + token)
+                .enqueue(new Callback<List<LogResponse>>() {
+
+                    @Override
+                    public void onResponse(Call<List<LogResponse>> call,
+                                           Response<List<LogResponse>> resp) {
+                        if (!isAdded()) return;
+
+                        if (resp.isSuccessful() && resp.body() != null) {
+                            atualizarLista(resp.body());
+                        } else {
+                            Toast.makeText(requireContext(),
+                                    "Não foi possível carregar o histórico.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<LogResponse>> call, Throwable t) {
+                        if (!isAdded()) return;
+                        Toast.makeText(requireContext(),
+                                "Sem conexão. Verifique sua internet.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void atualizarLista(List<LogResponse> logs) {
+        tvTotalExecutados.setText(logs.size() + " sessão(ões)");
+
+        // Calcula média de dor dos registros retornados
+        if (logs.isEmpty()) {
+            tvMediaDor.setText("—");
             tvVazio.setVisibility(View.VISIBLE);
             recyclerHistorico.setVisibility(View.GONE);
         } else {
+            double somaDor = 0;
+            for (LogResponse log : logs) somaDor += log.getPainLevel();
+            double media = somaDor / logs.size();
+            tvMediaDor.setText(String.format("%.1f / 10", media));
+
             tvVazio.setVisibility(View.GONE);
             recyclerHistorico.setVisibility(View.VISIBLE);
 
-            RegistroAdapter adapter = new RegistroAdapter(registros);
+            RegistroAdapter adapter = new RegistroAdapter(logs);
             recyclerHistorico.setLayoutManager(new LinearLayoutManager(requireContext()));
             recyclerHistorico.setAdapter(adapter);
         }

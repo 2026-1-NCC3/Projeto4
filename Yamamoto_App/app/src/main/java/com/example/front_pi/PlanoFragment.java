@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,13 +14,17 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.api.ApiClient;
+import com.example.api.ApiService;
+import com.example.api.PrescricaoResponse;
+
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Fragment principal: exibe o plano de exercícios prescritos.
- * FUNÇÃO PRINCIPAL do sistema — totalmente implementada.
- * Usa RecyclerView (Estrutura de Dados: lista com adapter).
- */
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class PlanoFragment extends Fragment {
 
     private RecyclerView recyclerExercicios;
@@ -38,15 +43,14 @@ public class PlanoFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        dataManager = DataManager.getInstance(requireContext());
-
+        dataManager        = DataManager.getInstance(requireContext());
         tvSaudacao         = view.findViewById(R.id.tvSaudacao);
         tvCargaSemanal     = view.findViewById(R.id.tvCargaSemanal);
         tvTotalExercicios  = view.findViewById(R.id.tvTotalExercicios);
         recyclerExercicios = view.findViewById(R.id.recyclerExercicios);
 
         configurarSaudacao();
-        configurarRecycler();
+        carregarExercicios();
     }
 
     private void configurarSaudacao() {
@@ -56,23 +60,65 @@ public class PlanoFragment extends Fragment {
         }
     }
 
-    /**
-     * Configura o RecyclerView com o plano de exercícios.
-     * Lista ordenada retornada pelo DataManager (Estruturas de Dados).
-     */
-    private void configurarRecycler() {
-        List<Exercicio> exercicios = dataManager.getPlanoExercicios();
+    private void carregarExercicios() {
+        Paciente p    = dataManager.getPacienteLogado();
+        String  token = dataManager.getToken();
 
-        // Análise numérica: carga semanal total
+        if (p == null || token == null) return;
+
+        // Converte o ID para int — o backend usa int, não String
+        int patientId = Integer.parseInt(p.getId());
+
+        ApiService api = ApiClient.getInstance().create(ApiService.class);
+        api.getPlano(patientId, "Bearer " + token)
+                .enqueue(new Callback<List<PrescricaoResponse>>() {
+
+                    @Override
+                    public void onResponse(Call<List<PrescricaoResponse>> call,
+                                           Response<List<PrescricaoResponse>> resp) {
+                        if (!isAdded()) return; // fragment pode ter saído da tela
+
+                        if (resp.isSuccessful() && resp.body() != null) {
+                            atualizarLista(resp.body());
+                        } else {
+                            Toast.makeText(requireContext(),
+                                    "Não foi possível carregar os exercícios.", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<PrescricaoResponse>> call, Throwable t) {
+                        if (!isAdded()) return;
+                        Toast.makeText(requireContext(),
+                                "Sem conexão. Verifique sua internet.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void atualizarLista(List<PrescricaoResponse> prescricoes) {
+        // Filtra só as prescrições ativas
+        List<PrescricaoResponse> ativas = new ArrayList<>();
+        for (PrescricaoResponse p : prescricoes) {
+            if (p.isActive()) ativas.add(p);
+        }
+
+        // Carga semanal total (frequência × prescrições ativas)
         int cargaTotal = 0;
-        for (Exercicio e : exercicios) cargaTotal += e.getCargaSemanalMinutos();
-        tvCargaSemanal.setText(cargaTotal + " min/semana");
-        tvTotalExercicios.setText(exercicios.size() + " exercícios");
+        for (PrescricaoResponse p : ativas) cargaTotal += p.getFrequencyPerWeek();
+        tvCargaSemanal.setText(cargaTotal + " sessões/semana");
+        tvTotalExercicios.setText(ativas.size() + " exercícios");
 
-        // Adapter com callback de clique (Intent explícita para detalhes)
-        ExercicioAdapter adapter = new ExercicioAdapter(exercicios, exercicio -> {
+        // Adapter recebe PrescricaoResponse — tem os dados do exercício + prescriptionId
+        ExercicioAdapter adapter = new ExercicioAdapter(ativas, prescricao -> {
             Intent intent = new Intent(requireContext(), ExercicioDetalheActivity.class);
-            intent.putExtra("exercicio", exercicio); // passa objeto via Intent
+            // Passa os dados necessários para a tela de detalhes
+            intent.putExtra("prescricao_id",   prescricao.getPrescriptionId());
+            intent.putExtra("exercise_id",     prescricao.getExerciseId());
+            intent.putExtra("exercise_title",  prescricao.getExerciseTitle());
+            intent.putExtra("exercise_desc",   prescricao.getExerciseDescription());
+            intent.putExtra("exercise_media",  prescricao.getExerciseMediaUrl());
+            intent.putExtra("instructions",    prescricao.getInstructions());
+            intent.putExtra("frequency",       prescricao.getFrequencyPerWeek());
             startActivity(intent);
         });
 

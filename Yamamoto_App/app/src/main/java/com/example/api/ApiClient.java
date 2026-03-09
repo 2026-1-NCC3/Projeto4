@@ -1,4 +1,4 @@
-package com.example.front_pi.api;
+package com.example.api;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

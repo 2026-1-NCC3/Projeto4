@@ -1,4 +1,4 @@
-package com.example.front_pi.api;
+package com.example.api;
 
 public class LogRequest {
     private int    prescriptionId;

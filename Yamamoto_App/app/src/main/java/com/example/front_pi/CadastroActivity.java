@@ -11,12 +11,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.WindowCompat;
 
-import com.example.front_pi.api.ApiClient;
-import com.example.front_pi.api.ApiService;
-import com.example.front_pi.api.LoginRequest;
-import com.example.front_pi.api.LoginResponse;
-import com.example.front_pi.api.RegisterRequest;
-import com.example.front_pi.api.RegisterResponse;
+import com.example.api.ApiService;
+import com.example.api.ApiClient;
+import com.example.api.LoginRequest;
+import com.example.api.LoginResponse;
+import com.example.api.RegisterRequest;
+import com.example.api.RegisterResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;

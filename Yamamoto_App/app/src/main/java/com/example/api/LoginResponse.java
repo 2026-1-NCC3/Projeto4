@@ -1,4 +1,4 @@
-package com.example.front_pi.api;
+package com.example.api;
 
 public class LoginResponse {
     private String token;

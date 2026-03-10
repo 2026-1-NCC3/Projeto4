@@ -11,10 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.view.WindowCompat;
 
-import com.example.front_pi.api.ApiClient;
-import com.example.front_pi.api.ApiService;
-import com.example.front_pi.api.LoginRequest;
-import com.example.front_pi.api.LoginResponse;
+import com.example.api.ApiClient;
+import com.example.api.ApiService;
+import com.example.api.LoginRequest;
+import com.example.api.LoginResponse;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -60,8 +60,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         signUpLink.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, CadastroActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(LoginActivity.this, CadastroActivity.class));
         });
     }
 
@@ -86,18 +85,24 @@ public class LoginActivity extends AppCompatActivity {
 
                     @Override
                     public void onResponse(Call<LoginResponse> call, Response<LoginResponse> resp) {
-                        if (resp.isSuccessful() && resp.body() != null) {
+                        android.util.Log.d("LOGIN_DEBUG", "Código HTTP: " + resp.code());
+                        try {
+                            if (resp.errorBody() != null) {
+                                android.util.Log.d("LOGIN_DEBUG", "Erro: " + resp.errorBody().string());
+                            }
+                        } catch (Exception e) {
+                            android.util.Log.d("LOGIN_DEBUG", "Erro ao ler body: " + e.getMessage());
+                        }
 
-                            // Salva o token JWT
+                        if (resp.isSuccessful() && resp.body() != null) {
                             dataManager.salvarToken(resp.body().getToken());
 
-                            // Monta e salva o Paciente com os dados do "user" retornado
                             LoginResponse.UserDto u = resp.body().getUser();
                             Paciente p = new Paciente(
                                     String.valueOf(u.getId()),
                                     u.getName(),
                                     u.getEmail(),
-                                    "" // senha não é salva localmente por segurança
+                                    ""
                             );
                             dataManager.salvarPaciente(p);
 
@@ -116,6 +121,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<LoginResponse> call, Throwable t) {
+                        android.util.Log.d("LOGIN_DEBUG", "Falha: " + t.getMessage());
                         Toast.makeText(LoginActivity.this,
                                 "Erro de conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
                     }

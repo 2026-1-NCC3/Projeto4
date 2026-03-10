@@ -1,4 +1,4 @@
-package com.example.front_pi.api;
+package com.example.api;
 
 public class RegisterRequest {
     private String name;     // ← "name", não "nome"

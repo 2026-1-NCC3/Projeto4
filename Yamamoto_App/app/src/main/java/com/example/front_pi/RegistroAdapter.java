@@ -9,17 +9,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.api.LogResponse;
+
 import java.util.List;
 
-/**
- * Adapter para a lista de registros de execução (histórico).
- * OOP: ViewHolder pattern, encapsulamento.
- */
 public class RegistroAdapter extends RecyclerView.Adapter<RegistroAdapter.ViewHolder> {
 
-    private final List<RegistroExecucao> lista;
+    private final List<LogResponse> lista;
 
-    public RegistroAdapter(List<RegistroExecucao> lista) {
+    public RegistroAdapter(List<LogResponse> lista) {
         this.lista = lista;
     }
 
@@ -42,7 +40,7 @@ public class RegistroAdapter extends RecyclerView.Adapter<RegistroAdapter.ViewHo
     static class ViewHolder extends RecyclerView.ViewHolder {
 
         private final TextView tvNomeExercicio, tvData, tvExecutado,
-                               tvDor, tvMobilidade, tvObservacoes;
+                tvDor, tvMobilidade, tvObservacoes;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -54,25 +52,50 @@ public class RegistroAdapter extends RecyclerView.Adapter<RegistroAdapter.ViewHo
             tvObservacoes   = itemView.findViewById(R.id.tvRegistroObservacoes);
         }
 
-        void bind(RegistroExecucao r) {
-            tvNomeExercicio.setText(r.getExercicioNome());
-            tvData.setText(r.getDataFormatada());
-            tvExecutado.setText(r.isExecutado() ? "✓ Executado" : "✗ Não executado");
-            tvExecutado.setTextColor(r.isExecutado() ?
-                Color.parseColor("#4CAF50") : Color.parseColor("#F44336"));
+        void bind(LogResponse r) {
+            // Nome do exercício vem do JOIN com exercises no backend
+            tvNomeExercicio.setText(r.getExerciseTitle() != null
+                    ? r.getExerciseTitle() : "Exercício");
 
-            // Dado numérico: nível de dor com cor indicativa
-            tvDor.setText("Dor: " + r.getNivelDor() + "/10 · " + r.getDescricaoDor());
-            tvDor.setTextColor(Color.parseColor(r.getCorDor()));
+            // Data de execução vinda do banco
+            tvData.setText(r.getExecutedAt() != null
+                    ? r.getExecutedAt() : "—");
 
-            tvMobilidade.setText("Mobilidade: " + r.getNivelMobilidade() + "/10");
+            // Todo log registrado significa que foi executado
+            tvExecutado.setText("✓ Executado");
+            tvExecutado.setTextColor(Color.parseColor("#4CAF50"));
 
-            if (r.getObservacoes() != null && !r.getObservacoes().isEmpty()) {
-                tvObservacoes.setText("Obs: " + r.getObservacoes());
+            // Nível de dor com cor indicativa
+            int dor = r.getPainLevel();
+            tvDor.setText("Dor: " + dor + "/10 · " + getDescricaoDor(dor));
+            tvDor.setTextColor(getCorDor(dor));
+
+            // Mobilidade não existe no backend — oculta o campo
+            tvMobilidade.setVisibility(View.GONE);
+
+            // Observações
+            String obs = r.getObservations();
+            if (obs != null && !obs.isEmpty()) {
+                tvObservacoes.setText("Obs: " + obs);
                 tvObservacoes.setVisibility(View.VISIBLE);
             } else {
                 tvObservacoes.setVisibility(View.GONE);
             }
+        }
+
+        private String getDescricaoDor(int nivel) {
+            String[] descricoes = {
+                    "Sem dor", "Mínima", "Leve", "Moderada leve", "Moderada",
+                    "Moderada forte", "Forte", "Muito forte", "Intensa",
+                    "Quase insuportável", "Insuportável"
+            };
+            return nivel >= 0 && nivel <= 10 ? descricoes[nivel] : "—";
+        }
+
+        private int getCorDor(int nivel) {
+            if (nivel <= 3) return Color.parseColor("#4CAF50"); // verde
+            if (nivel <= 6) return Color.parseColor("#FF9800"); // laranja
+            return Color.parseColor("#F44336");                 // vermelho
         }
     }
 }

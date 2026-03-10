@@ -8,24 +8,20 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.api.PrescricaoResponse;
+
 import java.util.List;
 
-/**
- * Adapter do RecyclerView para exibir cards de exercícios.
- * Padrão ViewHolder (OOP: reutilização e encapsulamento da view).
- * Interface funcional OnExercicioClickListener para callback de clique.
- */
 public class ExercicioAdapter extends RecyclerView.Adapter<ExercicioAdapter.ViewHolder> {
 
-    /** Interface funcional para callback de clique — OOP: polimorfismo via interface. */
     public interface OnExercicioClickListener {
-        void onClick(Exercicio exercicio);
+        void onClick(PrescricaoResponse prescricao); // ← era Exercicio, agora é PrescricaoResponse
     }
 
-    private final List<Exercicio> lista;
+    private final List<PrescricaoResponse> lista;
     private final OnExercicioClickListener listener;
 
-    public ExercicioAdapter(List<Exercicio> lista, OnExercicioClickListener listener) {
+    public ExercicioAdapter(List<PrescricaoResponse> lista, OnExercicioClickListener listener) {
         this.lista    = lista;
         this.listener = listener;
     }
@@ -40,20 +36,16 @@ public class ExercicioAdapter extends RecyclerView.Adapter<ExercicioAdapter.View
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Exercicio exercicio = lista.get(position);
-        holder.bind(exercicio, listener);
+        holder.bind(lista.get(position), listener);
     }
 
     @Override
     public int getItemCount() { return lista.size(); }
 
-    /**
-     * ViewHolder — encapsula as referências de views do item.
-     */
     static class ViewHolder extends RecyclerView.ViewHolder {
 
-        private final TextView tvNumero, tvNome, tvCategoria, tvFrequencia,
-                               tvDuracao, tvSeries, tvCargaSemanal;
+        private final TextView tvNumero, tvNome, tvCategoria,
+                tvFrequencia, tvDuracao, tvSeries, tvCargaSemanal;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -66,18 +58,31 @@ public class ExercicioAdapter extends RecyclerView.Adapter<ExercicioAdapter.View
             tvCargaSemanal = itemView.findViewById(R.id.tvCargaSemanal);
         }
 
-        void bind(Exercicio e, OnExercicioClickListener listener) {
-            tvNumero.setText(String.valueOf(e.getOrdem()));
-            tvNome.setText(e.getNome());
-            tvCategoria.setText(e.getCategoria().getDescricao());
-            tvFrequencia.setText(e.getFrequenciaFormatada());
-            tvDuracao.setText(e.getDuracaoMinutos() + " min/sessão");
-            tvSeries.setText(e.getSeriesRecomendadas() + " séries × " +
-                             e.getRepeticoesRecomendadas() + " reps");
-            // Dado numérico: carga semanal calculada
-            tvCargaSemanal.setText("Carga: " + e.getCargaSemanalMinutos() + " min/semana");
+        void bind(PrescricaoResponse p, OnExercicioClickListener listener) {
+            tvNumero.setText(String.valueOf(p.getExerciseId()));
+            tvNome.setText(p.getExerciseTitle());
 
-            itemView.setOnClickListener(v -> listener.onClick(e));
+            // Tags funcionam como categoria — ex: "coluna,lombar"
+            String tags = p.getExerciseTags();
+            tvCategoria.setText(tags != null && !tags.isEmpty() ? tags : "Sem categoria");
+
+            // Frequência vinda da prescrição
+            tvFrequencia.setText(p.getFrequencyPerWeek() + "x por semana");
+
+            // Instruções no lugar de duração
+            String instrucoes = p.getInstructions();
+            tvDuracao.setText(instrucoes != null && !instrucoes.isEmpty()
+                    ? instrucoes : "Sem instruções");
+
+            // Mídia disponível?
+            String media = p.getExerciseMediaUrl();
+            tvSeries.setText(media != null && !media.isEmpty()
+                    ? "Mídia disponível" : "Sem mídia");
+
+            // Carga semanal não vem do backend — deixa em branco ou remove
+            tvCargaSemanal.setText("");
+
+            itemView.setOnClickListener(v -> listener.onClick(p));
         }
     }
 }

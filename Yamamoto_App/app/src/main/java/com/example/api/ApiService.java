@@ -1,7 +1,7 @@
-package com.example.front_pi.api;
+package com.example.api;
 
-import com.example.front_pi.api.PrescricaoResponse;
-import com.example.front_pi.api.LogResponse;
+import com.example.api.PrescricaoResponse;
+import com.example.api.LogResponse;
 
 import java.util.List;
 import retrofit2.Call;

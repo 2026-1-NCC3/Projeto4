@@ -159,7 +159,7 @@
   cursor: pointer;
   border: 1.5px solid var(--border);
   background: var(--bg-card);
-  color: var(--text-muted);
+  color: var(--primary-text);
   transition: all 0.18s;
 }
 

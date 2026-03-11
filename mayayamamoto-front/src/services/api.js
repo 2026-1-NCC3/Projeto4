@@ -1,7 +1,7 @@
 /**
  * Configuração centralizada da API com detecção de ambiente nativa do Vite.
  */
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = import.meta.env.VITE_API_URL || 'https://hfk9lk-3000.csb.app';
 
 export const endpoints = {
   login: `${API_URL}/auth/login`,

@@ -30,6 +30,10 @@ export default function LoginPage() {
       });
       const data = await response.json();
       if (response.ok) {
+        // Armazena o token e informações básicas do usuário
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        
         navigate('/app');
       } else {
         setError(data.message || "E-mail ou senha incorretos.");

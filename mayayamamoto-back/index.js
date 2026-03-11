@@ -1,8 +1,12 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const { initDatabase } = require("./src/config/database");
 
 const app = express();
+
+// Middlewares globais
+app.use(cors());
 app.use(express.json());
 
 // ─── Rotas ────────────────────────────────────────────────────────────────────

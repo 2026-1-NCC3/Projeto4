@@ -32,9 +32,22 @@ export default function Patients() {
   });
 
   useEffect(() => {
-    fetch(endpoints.getUsers)
+    const token = localStorage.getItem("token");
+    fetch(endpoints.getUsers, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
       .then((r) => r.json())
-      .then((data) => { setPatients(data); setLoading(false); })
+      .then((data) => { 
+        if (Array.isArray(data)) {
+          setPatients(data); 
+        } else {
+          console.error("Dados recebidos não são uma lista:", data);
+          setPatients([]);
+        }
+        setLoading(false); 
+      })
       .catch(() => setLoading(false));
   }, []);
 

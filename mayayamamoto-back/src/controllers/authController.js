@@ -8,26 +8,29 @@ const { isValidEmail } = require("../validators/validators");
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log(`[AUTH] Tentativa de login para: ${email}`);
 
     if (!email || !password) {
       return res.status(400).json({ message: "E-mail e senha são obrigatórios." });
     }
 
     const result = await authService.login(email, password);
+    console.log(`[AUTH] Login bem-sucedido: ${email}`);
     return res.status(200).json(result);
   } catch (err) {
+    console.error(`[AUTH ERROR] Erro ao logar ${req.body.email}:`, err.message);
+    
     const knownErrors = ["Usuário não encontrado.", "Senha incorreta.", "Conta desativada."];
     if (knownErrors.includes(err.message)) {
       return res.status(401).json({ message: err.message });
     }
-    console.error("[authController.login]", err);
+    
     return res.status(500).json({ message: "Erro interno do servidor." });
   }
 };
 
 /**
  * POST /auth/register
- * Body: { name, email, password, type? }
  */
 exports.register = async (req, res) => {
   try {

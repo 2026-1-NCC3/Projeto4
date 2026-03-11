@@ -33,9 +33,22 @@ export default function Exercise() {
   });
 
   useEffect(() => {
-    fetch(endpoints.getExercises)
+    const token = localStorage.getItem("token");
+    fetch(endpoints.getExercises, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    })
       .then((r) => r.json())
-      .then((data) => { setExercises(data); setLoading(false); })
+      .then((data) => { 
+        if (Array.isArray(data)) {
+          setExercises(data); 
+        } else {
+          console.error("Dados recebidos não são uma lista:", data);
+          setExercises([]);
+        }
+        setLoading(false); 
+      })
       .catch(() => setLoading(false));
   }, []);
 

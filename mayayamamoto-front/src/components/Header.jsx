@@ -32,6 +32,12 @@ export default function Header() {
     navigate("/app/perfil");
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    navigate("/");
+  };
+
   return (
     <>
       <header className="sticky top-0 z-[100] flex items-center justify-between gap-6 h-[90px] px-8 bg-maya-blue shadow-lg font-sans animate-slide-down">
@@ -144,12 +150,11 @@ export default function Header() {
             <h3 className="text-2xl font-black tracking-tight leading-none">Maya Yamamoto</h3>
             <p className="text-[11px] opacity-80 font-black uppercase tracking-[2px] mt-2">Profissional de Saúde</p>
           </div>
-          {/* Decoração de Fundo Sutil */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
         </div>
 
         {/* Links Internos Sólidos */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-2 bg-white">
+        <div className="flex-1 overflow-y-auto p-6 space-y-2 bg-white text-slate-700">
           <button 
             onClick={handleProfileClick} 
             className="w-full flex items-center justify-between p-5 rounded-2xl hover:bg-slate-50 text-slate-700 transition-all group border border-transparent hover:border-slate-100"
@@ -196,7 +201,7 @@ export default function Header() {
         {/* Rodapé do Drawer */}
         <div className="p-8 bg-slate-50 border-t border-slate-100">
           <button 
-            onClick={() => navigate("/")}
+            onClick={handleLogout}
             className="w-full py-4 bg-white text-rose-500 font-black text-sm rounded-2xl border border-rose-100 shadow-sm hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all active:scale-[0.98]"
           >
             <FaSignOutAlt className="inline-block mr-2" /> Encerrar Sessão

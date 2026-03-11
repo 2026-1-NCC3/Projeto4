@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Fonte Principal */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Cores personalizadas do projeto */
+  --color-maya-blue: #39BCD2;
+  --color-maya-light: #e8f0fe;
+  
+  /* Animação de entrada */
+  --animate-slide-down: slideDown 0.35s ease both;
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Reset Global */
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

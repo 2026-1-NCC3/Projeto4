@@ -17,7 +17,8 @@ exports.createExercise = async (req, res) => {
 /** GET /exercises  — query param: ?search=coluna */
 exports.getExercises = async (req, res) => {
   try {
-    const exercises = await exerciseService.getExercises(req.query);
+    const { search } = req.query;
+    const exercises = await exerciseService.getExercises(search);
     return res.status(200).json(exercises);
   } catch (err) {
     console.error("[exerciseController.getExercises]", err);

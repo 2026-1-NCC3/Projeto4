@@ -10,21 +10,21 @@ app.use(cors());
 app.use(express.json());
 
 // ─── Rotas ────────────────────────────────────────────────────────────────────
-app.use("/health",        require("./src/routes/healthRoutes"));
-app.use("/auth",          require("./src/routes/authRoutes"));
-app.use("/users",         require("./src/routes/userRoutes"));
-app.use("/patients",      require("./src/routes/patientRoutes"));
-app.use("/exercises",     require("./src/routes/exerciseRoutes"));
-app.use("/prescriptions", require("./src/routes/prescriptionRoutes"));
-app.use("/logs",          require("./src/routes/executionLogRoutes"));
-app.use("/sessions",      require("./src/routes/sessionRoutes"));
+app.use("/health",        require("./src/routes/healthRoutes.js"));
+app.use("/auth",          require("./src/routes/authRoutes.js"));
+app.use("/users",         require("./src/routes/userRoutes.js"));
+app.use("/patients",      require("./src/routes/patientRoutes.js"));
+app.use("/exercises",     require("./src/routes/exerciseRoutes.js"));
+app.use("/prescriptions", require("./src/routes/prescriptionRoutes.js"));
+app.use("/logs",          require("./src/routes/executionLogRoutes.js"));
+app.use("/sessions",      require("./src/routes/sessionRoutes.js"));
 
 // ─── Rota 404 ─────────────────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ message: "Rota não encontrada." });
 });
 
-// ─── Aguarda o banco estar pronto antes de ouvir requisições ──────────────────
+// ─── Servidor ─────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 
 initDatabase()
@@ -37,5 +37,3 @@ initDatabase()
     console.error("❌ Falha ao inicializar o banco. Servidor não iniciado.", err.message);
     process.exit(1);
   });
-
-  

@@ -26,14 +26,17 @@ export default function Patients() {
   // Estados para o Modal de Novo Paciente
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newPatient, setNewPatient] = useState({
-    user_name: "",
-    user_email: "",
-    user_status: "ativo"
+    name: "",
+    email: "",
+    phone: "",
+    birthdate: "",
+    status: 1
   });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    fetch(endpoints.getUsers, {
+    // Agora busca de /patients
+    fetch(endpoints.getPatients, {
       headers: {
         "Authorization": `Bearer ${token}`
       }
@@ -51,17 +54,48 @@ export default function Patients() {
       .catch(() => setLoading(false));
   }, []);
 
-  const handleCreatePatient = (e) => {
+  const handleCreatePatient = async (e) => {
     e.preventDefault();
-    const id = patients.length + 1;
-    setPatients([{ user_id: id, ...newPatient }, ...patients]);
-    setIsModalOpen(false);
-    setNewPatient({ user_name: "", user_email: "", user_status: "ativo" });
+    const token = localStorage.getItem("token");
+    
+    try {
+      const res = await fetch(endpoints.getPatients, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newPatient)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        // Recarrega a lista ou adiciona o novo paciente localmente
+        setPatients([{ 
+          patient_id: data.id, 
+          patient_name: newPatient.name, 
+          patient_email: newPatient.email,
+          patient_status: newPatient.status 
+        }, ...patients]);
+        setIsModalOpen(false);
+        setNewPatient({ name: "", email: "", phone: "", birthdate: "", status: 1 });
+      } else {
+        alert(data.message || "Erro ao cadastrar paciente");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Erro de conexão com o servidor");
+    }
   };
 
   const filtered = patients.filter((p) => {
-    const matchSearch = (p.user_name || "").toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "todos" || p.user_status === statusFilter;
+    const name = p.patient_name || "";
+    const matchSearch = name.toLowerCase().includes(search.toLowerCase());
+    
+    // Status no banco é 1 (ativo) ou 0 (inativo)
+    const currentStatusStr = p.patient_status === 1 ? "ativo" : "inativo";
+    const matchStatus = statusFilter === "todos" || currentStatusStr === statusFilter;
+    
     return matchSearch && matchStatus;
   });
 
@@ -106,13 +140,6 @@ export default function Patients() {
             value={search}
             onChange={handleSearch}
           />
-          {search && (
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600" onClick={() => { setSearch(""); setPage(1); }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          )}
         </div>
 
         <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
@@ -141,48 +168,37 @@ export default function Patients() {
                 <div className="w-12 h-12 bg-slate-200 rounded-xl" />
                 <div className="w-16 h-6 bg-slate-200 rounded-full" />
               </div>
-              <div className="space-y-2">
-                <div className="h-5 bg-slate-200 rounded-md w-3/4" />
-                <div className="h-4 bg-slate-200 rounded-md w-1/2" />
-              </div>
             </div>
           ))}
-        </div>
-      ) : paginated.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-300">
-          <svg className="text-slate-300 mb-4" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <p className="text-slate-500 font-medium text-lg">Nenhum paciente encontrado</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {paginated.map((p) => (
             <div 
-              key={p.user_id} 
+              key={p.patient_id} 
               className="group bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200 transition-all cursor-pointer flex flex-col gap-5 active:scale-[0.98] min-h-[200px]"
-              onClick={() => alert(`Ver detalhes de ${p.user_name}`)}
+              onClick={() => alert(`Ver detalhes de ${p.patient_name}`)}
             >
               <div className="flex justify-between items-start">
                 <div 
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-current/10"
-                  style={{ backgroundColor: avatarColor(p.user_id) }}
+                  style={{ backgroundColor: avatarColor(p.patient_id) }}
                 >
-                  {getInitials(p.user_name)}
+                  {getInitials(p.patient_name)}
                 </div>
                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
-                  ${p.user_status === "ativo" ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
-                  {p.user_status}
+                  ${p.patient_status === 1 ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"}`}>
+                  {p.patient_status === 1 ? "ativo" : "inativo"}
                 </span>
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-lg font-bold text-slate-800 group-hover:text-maya-blue transition-colors line-clamp-1">{p.user_name}</h3>
-                <p className="text-sm text-slate-500 line-clamp-1">{p.user_email}</p>
+                <h3 className="text-lg font-bold text-slate-800 group-hover:text-maya-blue transition-colors line-clamp-1">{p.patient_name}</h3>
+                <p className="text-sm text-slate-500 line-clamp-1">{p.patient_email}</p>
               </div>
 
               <div className="pt-5 border-t border-slate-50 flex items-center justify-between mt-auto">
-                <span className="text-[11px] font-mono font-semibold text-slate-400">ID: #{String(p.user_id).padStart(4, "0")}</span>
+                <span className="text-[11px] font-mono font-semibold text-slate-400">ID: #{String(p.patient_id).padStart(4, "0")}</span>
                 <span className="text-xs font-bold text-maya-blue flex items-center gap-1 group-hover:gap-2 transition-all">
                   Ver prontuário
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -214,8 +230,8 @@ export default function Patients() {
                   required
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all"
                   placeholder="Ex: João da Silva"
-                  value={newPatient.user_name}
-                  onChange={(e) => setNewPatient({...newPatient, user_name: e.target.value})}
+                  value={newPatient.name}
+                  onChange={(e) => setNewPatient({...newPatient, name: e.target.value})}
                 />
               </div>
 
@@ -226,21 +242,30 @@ export default function Patients() {
                   type="email"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all"
                   placeholder="exemplo@email.com"
-                  value={newPatient.user_email}
-                  onChange={(e) => setNewPatient({...newPatient, user_email: e.target.value})}
+                  value={newPatient.email}
+                  onChange={(e) => setNewPatient({...newPatient, email: e.target.value})}
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Status Inicial</label>
-                <select 
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all appearance-none"
-                  value={newPatient.user_status}
-                  onChange={(e) => setNewPatient({...newPatient, user_status: e.target.value})}
-                >
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Telefone</label>
+                  <input 
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all"
+                    placeholder="(11) 99999-9999"
+                    value={newPatient.phone}
+                    onChange={(e) => setNewPatient({...newPatient, phone: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Nascimento</label>
+                  <input 
+                    type="date"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all"
+                    value={newPatient.birthdate}
+                    onChange={(e) => setNewPatient({...newPatient, birthdate: e.target.value})}
+                  />
+                </div>
               </div>
 
               <button 

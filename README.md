@@ -31,17 +31,17 @@ May the force be with you!
 
 📦Raiz<br>
 ┃<br>
-┃ ┣ 📂documentos
-┃ ┃ ┃ ┗ 📜Documento - Projeto de Extensão - COM Empresa.docx
-┃ ┃ ┣ 📂src
-┃ ┣ 📂mayayamamoto-app
-┃ ┃ ┃ ┣ 📂app
-┃ ┣ 📂mayayamamoto-back
-┃ ┃ ┃ ┣ 📂src
-┃ ┣ 📂mayayamamoto-front
-┃ ┃ ┃ ┣ 📂src
-┣ 📜.gitignore
-┗ 📜README.md
+┃ ┣ 📂documentos<br>
+┃ ┃ ┃ ┗ 📜Documento - Projeto de Extensão - COM Empresa.docx<br>
+┃ ┃ ┣ 📂src<br>
+┃ ┣ 📂mayayamamoto-app<br>
+┃ ┃ ┃ ┣ 📂app<br>
+┃ ┣ 📂mayayamamoto-back<br>
+┃ ┃ ┃ ┣ 📂src<br>
+┃ ┣ 📂mayayamamoto-front<br>
+┃ ┃ ┃ ┣ 📂src<br>
+┣ 📜.gitignore<br>
+┗ 📜README.md<br>
 
 A pasta raiz contem dois arquivos que devem ser alterados:
 

@@ -29,20 +29,19 @@ May the force be with you!
 
 ## 🛠 Estrutura de pastas
 
--Raiz<br>
-|<br>
-|-->documentos<br>
-  &emsp;|-->antigos<br>
-  &emsp;|Documentação.docx<br>
-|-->executáveis<br>
-  &emsp;|-->windows<br>
-  &emsp;|-->android<br>
-  &emsp;|-->HTML<br>
-|-->imagens<br>
-|-->src<br>
-  &emsp;|-->Backend<br>
-  &emsp;|-->Frontend<br>
-|readme.md<br>
+📦Raiz<br>
+┃<br>
+┃ ┣ 📂documentos
+┃ ┃ ┃ ┗ 📜Documento - Projeto de Extensão - COM Empresa.docx
+┃ ┃ ┣ 📂src
+┃ ┣ 📂mayayamamoto-app
+┃ ┃ ┃ ┣ 📂app
+┃ ┣ 📂mayayamamoto-back
+┃ ┃ ┃ ┣ 📂src
+┃ ┣ 📂mayayamamoto-front
+┃ ┃ ┃ ┣ 📂src
+┣ 📜.gitignore
+┗ 📜README.md
 
 A pasta raiz contem dois arquivos que devem ser alterados:
 

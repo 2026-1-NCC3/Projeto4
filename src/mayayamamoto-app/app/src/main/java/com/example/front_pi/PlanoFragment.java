@@ -66,8 +66,8 @@ public class PlanoFragment extends Fragment {
 
         if (p == null || token == null) return;
 
+        // Converte o ID para int — o backend usa int, não String
         int patientId = Integer.parseInt(p.getId());
-        android.util.Log.d("PLANO_DEBUG", "Buscando prescrições para patientId: " + patientId);
 
         ApiService api = ApiClient.getInstance().create(ApiService.class);
         api.getPlano(patientId, "Bearer " + token)
@@ -76,23 +76,7 @@ public class PlanoFragment extends Fragment {
                     @Override
                     public void onResponse(Call<List<PrescricaoResponse>> call,
                                            Response<List<PrescricaoResponse>> resp) {
-                        if (!isAdded()) return;
-
-                        android.util.Log.d("PLANO_DEBUG", "HTTP: " + resp.code());
-                        if (resp.body() != null) {
-                            android.util.Log.d("PLANO_DEBUG", "Qtd: " + resp.body().size());
-                            for (PrescricaoResponse pr : resp.body()) {
-                                android.util.Log.d("PLANO_DEBUG", "ID=" + pr.getPrescriptionId()
-                                        + " titulo=" + pr.getExerciseTitle()
-                                        + " active=" + pr.isActive());
-                            }
-                        } else {
-                            android.util.Log.d("PLANO_DEBUG", "Body null, code: " + resp.code());
-                            try {
-                                if (resp.errorBody() != null)
-                                    android.util.Log.d("PLANO_DEBUG", "Erro: " + resp.errorBody().string());
-                            } catch (Exception e) {}
-                        }
+                        if (!isAdded()) return; // fragment pode ter saído da tela
 
                         if (resp.isSuccessful() && resp.body() != null) {
                             atualizarLista(resp.body());
@@ -105,7 +89,6 @@ public class PlanoFragment extends Fragment {
                     @Override
                     public void onFailure(Call<List<PrescricaoResponse>> call, Throwable t) {
                         if (!isAdded()) return;
-                        android.util.Log.d("PLANO_DEBUG", "Falha: " + t.getMessage());
                         Toast.makeText(requireContext(),
                                 "Sem conexão. Verifique sua internet.", Toast.LENGTH_SHORT).show();
                     }

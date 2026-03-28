@@ -70,8 +70,11 @@ public class RegistroAdapter extends RecyclerView.Adapter<RegistroAdapter.ViewHo
             tvDor.setText("Dor: " + dor + "/10 · " + getDescricaoDor(dor));
             tvDor.setTextColor(getCorDor(dor));
 
-            // Mobilidade não existe no backend — oculta o campo
-            tvMobilidade.setVisibility(View.GONE);
+            // Mobilidade vinda do backend
+            int mob = r.getMobilityLevel();
+            tvMobilidade.setText("Mobilidade: " + mob + "/10 · " + getDescricaoMobildade(mob));
+            tvMobilidade.setTextColor(getCorMobilidade(mob));
+            tvMobilidade.setVisibility(View.VISIBLE);
 
             // Observações
             String obs = r.getObservations();
@@ -96,6 +99,21 @@ public class RegistroAdapter extends RecyclerView.Adapter<RegistroAdapter.ViewHo
             if (nivel <= 3) return Color.parseColor("#4CAF50"); // verde
             if (nivel <= 6) return Color.parseColor("#FF9800"); // laranja
             return Color.parseColor("#F44336");                 // vermelho
+        }
+
+        private String getDescricaoMobildade(int nivel) {
+            String[] descricoes = {
+                    "Sem movimento", "Muito restrita", "Severamente limitada",
+                    "Muito limitada", "Limitada", "Moderada", "Funcional",
+                    "Boa", "Muito boa", "Excelente", "Total"
+            };
+            return nivel >= 0 && nivel <= 10 ? descricoes[nivel] : "—";
+        }
+
+        private int getCorMobilidade(int nivel) {
+            if (nivel >= 7) return Color.parseColor("#4CAF50"); // verde (bom)
+            if (nivel >= 4) return Color.parseColor("#FF9800"); // laranja (médio)
+            return Color.parseColor("#F44336");                 // vermelho (ruim)
         }
     }
 }

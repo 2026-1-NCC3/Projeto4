@@ -29,7 +29,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      if (response) {
+      if (response.ok) {
         // Armazena o token e informações básicas do usuário
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));

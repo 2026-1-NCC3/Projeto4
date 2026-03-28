@@ -27,7 +27,9 @@ function initDatabase() {
           user_email            TEXT NOT NULL UNIQUE,
           user_password         TEXT NOT NULL,
           user_status           INTEGER NOT NULL DEFAULT 1,
-          user_type             INTEGER NOT NULL DEFAULT 2, -- 1:Admin, 2:Doctor
+          user_type             INTEGER NOT NULL DEFAULT 2, -- 1:Admin, 2:Doctor, 3:Patient
+          user_phone            TEXT,
+          user_birthdate        TEXT,
           user_lgpd_accepted_at TEXT,
           created_at            TEXT DEFAULT (datetime('now','localtime')),
           updated_at            TEXT DEFAULT (datetime('now','localtime'))
@@ -50,39 +52,34 @@ function initDatabase() {
       // 3. Patients (Dados dos Pacientes)
       db.run(`
         CREATE TABLE IF NOT EXISTS patients (
-          patient_id        INTEGER PRIMARY KEY AUTOINCREMENT,
-          patient_name      TEXT NOT NULL,
-          patient_email     TEXT UNIQUE,
-          patient_phone     TEXT,
-          patient_birthdate TEXT,
-          patient_gender    TEXT,
-          patient_address   TEXT,
+          patient_id        INTEGER PRIMARY KEY,
+          patient_name      TEXT(255) NOT NULL,
           patient_notes     TEXT,
-          patient_status    INTEGER NOT NULL DEFAULT 1,
-          created_by        INTEGER NOT NULL,
-          created_at        TEXT DEFAULT (datetime('now','localtime')),
-          updated_at        TEXT DEFAULT (datetime('now','localtime')),
-          FOREIGN KEY (created_by) REFERENCES users(user_id)
+          lgpd_accepted_at  TEXT,
+          created_at        TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+          updated_at        TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+          user_id           INTEGER,
+          FOREIGN KEY (patient_id) REFERENCES users(user_id) ON DELETE CASCADE
         )
       `);
 
-      // 4. Exercises (Biblioteca de Exercícios)
+      // 4. Exercises
       db.run(`
         CREATE TABLE IF NOT EXISTS exercises (
           exercise_id          INTEGER PRIMARY KEY AUTOINCREMENT,
-          exercise_title       TEXT NOT NULL,
+          exercise_title       TEXT(255) NOT NULL,
           exercise_description TEXT,
           exercise_tags        TEXT,
           exercise_media_url   TEXT,
-          exercise_media_type  TEXT DEFAULT 'image',
+          exercise_media_type  TEXT(10) DEFAULT 'image',
           created_by           INTEGER NOT NULL,
-          created_at           TEXT DEFAULT (datetime('now','localtime')),
-          updated_at           TEXT DEFAULT (datetime('now','localtime')),
+          created_at           TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+          updated_at           TEXT NOT NULL DEFAULT (datetime('now','localtime')),
           FOREIGN KEY (created_by) REFERENCES users(user_id)
         )
       `);
 
-      // 5. Prescriptions (Vínculo Paciente x Exercício)
+      // 5. Prescriptions
       db.run(`
         CREATE TABLE IF NOT EXISTS prescriptions (
           prescription_id    INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,49 +89,48 @@ function initDatabase() {
           instructions       TEXT,
           active             INTEGER NOT NULL DEFAULT 1,
           prescribed_by      INTEGER NOT NULL,
-          created_at         TEXT DEFAULT (datetime('now','localtime')),
-          updated_at         TEXT DEFAULT (datetime('now','localtime')),
+          created_at         TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+          updated_at         TEXT NOT NULL DEFAULT (datetime('now','localtime')),
           FOREIGN KEY (patient_id)    REFERENCES patients(patient_id),
           FOREIGN KEY (exercise_id)   REFERENCES exercises(exercise_id),
           FOREIGN KEY (prescribed_by) REFERENCES users(user_id)
         )
       `);
 
-      // 6. Execution Logs (Check-in do Paciente)
+      // 6. Execution Logs
       db.run(`
         CREATE TABLE IF NOT EXISTS execution_logs (
           log_id          INTEGER PRIMARY KEY AUTOINCREMENT,
           prescription_id INTEGER NOT NULL,
           patient_id      INTEGER NOT NULL,
+          exercise_id     INTEGER,           -- Adicionado: ID direto do exercício
+          series          INTEGER DEFAULT 0, -- Adicionado: número de séries
+          repetitions     INTEGER DEFAULT 0, -- Adicionado: número de repetições
           pain_level      INTEGER DEFAULT 0,
+          mobility_level  INTEGER DEFAULT 5,
           observations    TEXT,
-          executed_at     TEXT DEFAULT (datetime('now','localtime')),
+          executed_at     TEXT NOT NULL DEFAULT (datetime('now','localtime')),
           FOREIGN KEY (prescription_id) REFERENCES prescriptions(prescription_id),
-          FOREIGN KEY (patient_id)      REFERENCES patients(patient_id)
+          FOREIGN KEY (patient_id)      REFERENCES patients(patient_id),
+          FOREIGN KEY (exercise_id)     REFERENCES exercises(exercise_id)
         )
       `);
 
-      // 7. Sessions (Prontuário / Evolução Clínica)
+      // 7. Sessions
       db.run(`
         CREATE TABLE IF NOT EXISTS sessions (
           session_id      INTEGER PRIMARY KEY AUTOINCREMENT,
           patient_id      INTEGER NOT NULL,
-          doctor_id       INTEGER NOT NULL,
-          session_title   TEXT,
+          professional_id INTEGER NOT NULL,
           session_notes   TEXT,
           session_date    TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-          created_at      TEXT DEFAULT (datetime('now','localtime')),
-          FOREIGN KEY (patient_id) REFERENCES patients(patient_id),
-          FOREIGN KEY (doctor_id)  REFERENCES users(user_id)
+          created_at      TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+          FOREIGN KEY (patient_id)      REFERENCES patients(patient_id),
+          FOREIGN KEY (professional_id) REFERENCES users(user_id)
         )
-      `, (err) => {
-        if (err) {
-          console.error("❌ Erro ao inicializar o banco:", err.message);
-          return reject(err);
-        }
-        console.log("✅ Banco de dados padronizado e pronto.");
-        resolve();
-      });
+      `);
+
+      resolve();
     });
   });
 }

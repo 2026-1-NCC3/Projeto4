@@ -24,10 +24,11 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
     private TextView tvNomeExercicio, tvDorValor, tvMobilidadeValor;
     private SeekBar seekBarDor, seekBarMobilidade;
     private CheckBox checkExecutado;
-    private EditText etObservacoes;
+    private EditText etObservacoes, etSeries, etRepeticoes;
     private Button btnSalvar;
 
     private int    prescricaoId;
+    private int    exercicioId;
     private String exercicioTitulo;
     private DataManager dataManager;
 
@@ -38,6 +39,7 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
         setContentView(R.layout.activity_registro_execucao);
 
         prescricaoId    = getIntent().getIntExtra("prescricao_id", -1);
+        exercicioId     = getIntent().getIntExtra("exercise_id", -1);
         exercicioTitulo = getIntent().getStringExtra("exercise_title");
         dataManager     = DataManager.getInstance(this);
 
@@ -58,6 +60,8 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
         seekBarMobilidade = findViewById(R.id.seekBarMobilidade);
         checkExecutado    = findViewById(R.id.checkExecutado);
         etObservacoes     = findViewById(R.id.etObservacoes);
+        etSeries          = findViewById(R.id.etSeriesRealizadas);
+        etRepeticoes      = findViewById(R.id.etRepeticoesRealizadas);
         btnSalvar         = findViewById(R.id.btnSalvarRegistro);
     }
 
@@ -104,18 +108,25 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
 
         if (p == null || token == null) { finish(); return; }
 
-        // Só registra se o paciente marcou que executou
+        // Valida se foi marcado como executado
         if (!checkExecutado.isChecked()) {
             Toast.makeText(this, "Marque que o exercício foi executado.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         int    dor  = seekBarDor.getProgress();
+        int    mob  = seekBarMobilidade.getProgress();
         String obs  = etObservacoes.getText().toString().trim();
         int    patientId = Integer.parseInt(p.getId());
 
-        // Monta o body do POST /logs
-        LogRequest logRequest = new LogRequest(prescricaoId, patientId, dor, obs);
+        // Captura séries e repetições
+        String sSeries = etSeries.getText().toString().trim();
+        String sReps   = etRepeticoes.getText().toString().trim();
+        int seriesNum = sSeries.isEmpty() ? 0 : Integer.parseInt(sSeries);
+        int repsNum   = sReps.isEmpty()   ? 0 : Integer.parseInt(sReps);
+
+        // Feedback completo ao backend
+        LogRequest logRequest = new LogRequest(prescricaoId, patientId, exercicioId, seriesNum, repsNum, dor, mob, obs);
 
         ApiService api = ApiClient.getInstance().create(ApiService.class);
         api.salvarLog(logRequest, "Bearer " + token)
@@ -125,18 +136,18 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
                     public void onResponse(Call<Void> call, Response<Void> resp) {
                         if (resp.isSuccessful()) {
                             Toast.makeText(RegistroExecucaoActivity.this,
-                                    "Execução registrada com sucesso!", Toast.LENGTH_SHORT).show();
+                                    "Execução registrada!", Toast.LENGTH_SHORT).show();
                             finish();
                         } else {
                             Toast.makeText(RegistroExecucaoActivity.this,
-                                    "Erro ao salvar. Tente novamente.", Toast.LENGTH_SHORT).show();
+                                    "Erro ao salvar registro.", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
                         Toast.makeText(RegistroExecucaoActivity.this,
-                                "Sem conexão. Tente novamente.", Toast.LENGTH_SHORT).show();
+                                "Erro de conexão.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -1,72 +1,95 @@
 const exerciseService = require("../services/exerciseService");
+const youtubeService = require("../services/youtube");
+const fs = require("fs");
+const path = require("path");
 
-/** POST /exercises */
-exports.createExercise = async (req, res) => {
+// Garante que as pastas de upload existem
+const ensureUploadDirs = () => {
+  const dirs = ["uploads/images", "uploads/videos"];
+  dirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+};
+
+exports.getAll = async (req, res) => {
   try {
-    const result = await exerciseService.createExercise(req.body, req.user.id);
+    const result = await exerciseService.getAll();
+    return res.status(200).json(result);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Erro interno", error: error.message });
+  }
+};
+
+exports.create = async (req, res) => {
+  ensureUploadDirs();
+  try {
+    const { title, description, tags } = req.body;
+    const createdBy = req.user.id;
+    let mediaUrl = "";
+    let mediaType = "image";
+
+    if (req.file) {
+      const isVideo = req.file.mimetype.startsWith("video/");
+      const localPath = `/` + req.file.path.replace(/\\/g, "/");
+
+      if (isVideo) {
+        mediaType = "video";
+        // Verifica se temos o token para tentar YouTube
+        if (process.env.YOUTUBE_REFRESH_TOKEN) {
+          try {
+            const youtubeData = await youtubeService.uploadVideo(
+              req.file.path,
+              title,
+              description
+            );
+            mediaUrl = `https://www.youtube.com/watch?v=${youtubeData.id}`;
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          } catch (ytError) {
+            console.error("⚠️ Falha no upload YouTube, usando local:", ytError.message);
+            mediaUrl = localPath; // Fallback para local
+          }
+        } else {
+          console.log("ℹ️ YouTube não configurado, salvando vídeo localmente.");
+          mediaUrl = localPath;
+        }
+      } else {
+        mediaType = "image";
+        mediaUrl = localPath;
+      }
+    } else {
+      mediaUrl = req.body.media_url || "";
+      mediaType = req.body.media_type || "image";
+    }
+
+    const result = await exerciseService.create(
+      title,
+      description,
+      tags,
+      mediaUrl,
+      mediaType,
+      createdBy
+    );
     return res.status(201).json(result);
-  } catch (err) {
-    if (err.message.includes("obrigatório") || err.message.includes("inválido")) {
-      return res.status(400).json({ message: err.message });
-    }
-    console.error("[exerciseController.createExercise]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+  } catch (error) {
+    console.error("❌ [exerciseController.create] Erro Crítico:", error);
+    return res
+      .status(500)
+      .json({ message: "Erro interno ao criar exercício", error: error.message });
   }
 };
 
-/** GET /exercises  — query param: ?search=coluna */
-exports.getExercises = async (req, res) => {
+exports.remove = async (req, res) => {
   try {
-    const { search } = req.query;
-    const exercises = await exerciseService.getExercises(search);
-    return res.status(200).json(exercises);
-  } catch (err) {
-    console.error("[exerciseController.getExercises]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
-  }
-};
-
-/** GET /exercises/:id */
-exports.getExerciseById = async (req, res) => {
-  try {
-    const exercise = await exerciseService.getExerciseById(Number(req.params.id));
-    return res.status(200).json(exercise);
-  } catch (err) {
-    if (err.message === "Exercício não encontrado.") {
-      return res.status(404).json({ message: err.message });
-    }
-    console.error("[exerciseController.getExerciseById]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
-  }
-};
-
-/** PUT /exercises/:id */
-exports.updateExercise = async (req, res) => {
-  try {
-    const result = await exerciseService.updateExercise(Number(req.params.id), req.body);
-    return res.status(200).json(result);
-  } catch (err) {
-    if (err.message === "Exercício não encontrado.") {
-      return res.status(404).json({ message: err.message });
-    }
-    if (err.message.includes("obrigatório") || err.message.includes("inválido")) {
-      return res.status(400).json({ message: err.message });
-    }
-    console.error("[exerciseController.updateExercise]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
-  }
-};
-
-/** DELETE /exercises/:id */
-exports.deleteExercise = async (req, res) => {
-  try {
-    const result = await exerciseService.deleteExercise(Number(req.params.id));
-    return res.status(200).json(result);
-  } catch (err) {
-    if (err.message === "Exercício não encontrado.") {
-      return res.status(404).json({ message: err.message });
-    }
-    console.error("[exerciseController.deleteExercise]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+    const { exerciseId } = req.params;
+    await exerciseService.remove(exerciseId);
+    return res.status(200).json({ message: "Exercício removido com sucesso" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Erro interno", error: error.message });
   }
 };

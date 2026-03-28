@@ -2,52 +2,46 @@ const { db } = require("../config/database");
 
 /**
  * Cria um novo paciente
- * created_by é o ID do usuário (profissional) autenticado
+ * patient_id deve corresponder ao user_id criado na tabela users
  */
-exports.create = (data, createdBy) => {
+exports.create = (data) => {
   return new Promise((resolve, reject) => {
     const sql = `
         INSERT INTO patients
-        (patient_name, patient_email, patient_phone, patient_birthdate, patient_notes, created_by)
-        VALUES (?, ?, ?, ?, ?, ?)
+        (patient_id, patient_name, patient_notes)
+        VALUES (?, ?, ?)
         `;
     const params = [
+      data.id,
       data.name,
-      data.email || null,
-      data.phone || null,
-      data.birthdate || null,
       data.notes || null,
-      createdBy,
     ];
     db.run(sql, params, function (err) {
       if (err) return reject(err);
-      resolve({ id: this.lastID });
+      resolve({ id: data.id });
     });
   });
 };
 
 /**
- * Retorna todos os pacientes com suporte a fultro por status e busca por nome/email
- * Parâmetros opcicionais: status (1 ou 0), searcH (texto)
+ * Retorna todos os pacientes com busca por nome
  */
-exports.getAll = ({ status, search } = {}) => {
+exports.getAll = ({ search } = {}) => {
   return new Promise((resolve, reject) => {
-    let sql = "SELECT * FROM patients WHERE 1=1";
+    let sql = `
+      SELECT p.*, u.user_email as patient_email, u.user_phone as patient_phone, u.user_birthdate as patient_birthdate, u.user_status as patient_status
+      FROM patients p
+      INNER JOIN users u ON u.user_id = p.patient_id
+      WHERE 1=1`;
     const params = [];
 
-    // Filtro por status (ativo/inativo)
-    if (status !== undefined && status !== null) {
-      sql += " AND patient_status = ?";
-      params.push(status);
-    }
-
-    // Busca por nome ou email
+    // Busca por nome
     if (search) {
-      sql += " AND (patient_name LIKE ? OR patient_email LIKE ?)";
+      sql += " AND (p.patient_name LIKE ? OR u.user_email LIKE ?)";
       params.push(`%${search}%`, `%${search}%`);
     }
 
-    sql += " ORDER BY patient_name ASC";
+    sql += " ORDER BY p.patient_name ASC";
 
     db.all(sql, params, (err, rows) => {
       if (err) return reject(err);
@@ -61,7 +55,12 @@ exports.getAll = ({ status, search } = {}) => {
  */
 exports.findById = (id) => {
   return new Promise((resolve, reject) => {
-    db.get("SELECT * FROM patients WHERE patient_id = ?", [id], (err, row) => {
+    const sql = `
+      SELECT p.*, u.user_email as patient_email, u.user_phone as patient_phone, u.user_birthdate as patient_birthdate, u.user_status as patient_status
+      FROM patients p
+      INNER JOIN users u ON u.user_id = p.patient_id
+      WHERE p.patient_id = ?`;
+    db.get(sql, [id], (err, row) => {
       if (err) return reject(err);
       resolve(row);
     });
@@ -69,27 +68,19 @@ exports.findById = (id) => {
 };
 
 /**
- * Atualiza os dados de um paciente
+ * Atualiza os dados de um paciente (apenas notas e aceite LGPD)
 */
 exports.update = (id, data) => {
     return new Promise((resolve, reject) => {
         const sql = `
         UPDATE patients
         SET patient_name      = ?,
-             patient_email     = ?,
-          patient_phone     = ?,
-          patient_birthdate = ?,
-          patient_notes     = ?,
-          patient_status    = ?,
-          updated_at        = datetime('now','localtime')
+            patient_notes     = ?,
+            updated_at        = datetime('now','localtime')
       WHERE patient_id = ?`;
       const params = [
         data.name,
-        data.email || null,
-        data.phone || null,
-        data.birthdate || null,
         data.notes || null,
-        data.status || 1,
         id
       ];
       db.run(sql, params, function (err) {
@@ -118,7 +109,6 @@ exports.acceptLgpd = (id) => {
 
 /**
  * Remove um paciente permanentemente.
- * Prefira desativar (status = 0) ao invés de remover para manter o histórico de prescrições e registros.
  */
 exports.delete = (id) => {
     return new Promise((resolve, reject) => {

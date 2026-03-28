@@ -11,6 +11,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 
+import com.example.api.ApiClient;
+
 public class ExercicioDetalheActivity extends AppCompatActivity {
 
     private TextView tvNome, tvCategoria, tvDescricao, tvOrientacoes,
@@ -69,37 +71,29 @@ public class ExercicioDetalheActivity extends AppCompatActivity {
 
     private void preencherDados() {
         tvNome.setText(titulo != null ? titulo : "Sem título");
-
-        // Categoria não existe no backend — usa "Exercício RPG" como padrão
         tvCategoria.setText("Exercício RPG");
-
         tvDescricao.setText(descricao != null ? descricao : "Sem descrição");
-
-        tvOrientacoes.setText(instrucoes != null && !instrucoes.isEmpty()
-                ? instrucoes : "Sem instruções específicas");
-
+        tvOrientacoes.setText(instrucoes != null && !instrucoes.isEmpty() ? instrucoes : "Sem instruções específicas");
         tvFrequencia.setText(frequencia + "x por semana");
-
-        // Duração e séries não existem no backend — mostra mídia disponível
-        tvDuracao.setText(mediaUrl != null && !mediaUrl.isEmpty()
-                ? "Mídia disponível" : "Sem mídia");
-
+        tvDuracao.setText(mediaUrl != null && !mediaUrl.isEmpty() ? "Mídia disponível" : "Sem mídia");
         tvSeries.setText("ID da prescrição: " + prescricaoId);
-
         tvCargaSemanal.setText("Frequência semanal: " + frequencia + " sessões");
-
         ivExercicio.setImageResource(R.drawable.ic_exercicio_placeholder);
     }
 
     private void configurarBotoes() {
-
-        // Botão "Ver Vídeo" — Intent implícita para abrir mídia no browser
+        // Abre mídia (vídeo ou imagem) no navegador
         btnVerVideo.setOnClickListener(v -> {
             String url = mediaUrl;
 
-            // Se não tiver mídia, busca no YouTube pelo título
+            // Resolve caminhos relativos do backend
+            if (url != null && url.startsWith("/")) {
+                url = ApiClient.BASE_URL + url;
+            }
+
+            // Fallback: busca no YouTube se mídia estiver vazia
             if (url == null || url.isEmpty()) {
-                url = "https://www.youtube.com/results?search_query=RPG+Reeducacao+Postural+Global+"
+                url = "https://www.youtube.com/results?search_query=RPG+Maya+Yamamoto+"
                         + Uri.encode(titulo != null ? titulo : "");
             }
 
@@ -111,11 +105,12 @@ public class ExercicioDetalheActivity extends AppCompatActivity {
             }
         });
 
-        // Botão "Registrar Execução" — passa prescricaoId para o check-in
+        // Botão "Registrar Execução" — passa prescricaoId e exerciseId para o check-in
         btnRegistrar.setOnClickListener(v -> {
             Intent intent = new Intent(ExercicioDetalheActivity.this,
                     RegistroExecucaoActivity.class);
             intent.putExtra("prescricao_id",  prescricaoId);
+            intent.putExtra("exercise_id",    exercicioId);
             intent.putExtra("exercise_title", titulo);
             startActivity(intent);
         });

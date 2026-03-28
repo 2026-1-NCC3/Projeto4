@@ -1,38 +1,19 @@
-const userModel = require("../models/userModel");
+const userModel = require("../models/userModel.js");
 
-/**
- * Retorna todos os usuários do sistema.
- */
 exports.getUsers = async () => {
-  return await userModel.getUsers();
+  console.log("services: getUsers");
+  const users = await userModel.getUsers();
+  console.log(users);
+  return users;
 };
 
-/**
- * Retorna um usuário pelo ID.
- * Lança erro se não encontrado.
- */
-exports.getUserById = async (id) => {
-  const user = await userModel.findById(id);
-  if (!user) throw new Error("Usuário não encontrado.");
-  return user;
+exports.getDoctors = async () => {
+  return await userModel.getUsersByType(2);
 };
 
-/**
- * Atualiza nome, status e tipo de um usuário.
- * Lança erro se o usuário não existir.
- */
-exports.updateUser = async (id, name, status, type) => {
-  const result = await userModel.updateUser(id, name, status, type);
-  if (result.changed === 0) throw new Error("Usuário não encontrado.");
-  return { message: "Usuário atualizado com sucesso." };
-};
-
-/**
- * Remove um usuário pelo ID.
- * Lança erro se o usuário não existir.
- */
-exports.deleteUser = async (id) => {
-  const result = await userModel.deleteUser(id);
-  if (result.deleted === 0) throw new Error("Usuário não encontrado.");
-  return { message: "Usuário removido com sucesso." };
+exports.getPacientes = async () => {
+  console.log("services: getPacientes");
+  const users = await userModel.getPacientes();
+  console.log(users);
+  return users;
 };

@@ -6,13 +6,26 @@ exports.createSession = async (req, res) => {
     if (!req.body.patientId) {
       return res.status(400).json({ message: "patientId é obrigatório." });
     }
-    const result = await sessionService.createSession(req.body, req.user.id);
+    // Permite passar professionalId no body ou usa o do token
+    const professionalId = req.body.professionalId ? Number(req.body.professionalId) : req.user.id;
+    const result = await sessionService.createSession(req.body, professionalId);
     return res.status(201).json(result);
   } catch (err) {
     if (err.message === "Paciente não encontrado.") {
       return res.status(404).json({ message: err.message });
     }
     console.error("[sessionController.createSession]", err);
+    return res.status(500).json({ message: "Erro interno do servidor." });
+  }
+};
+
+/** GET /sessions */
+exports.getAllSessions = async (req, res) => {
+  try {
+    const sessions = await sessionService.getAllSessions();
+    return res.status(200).json(sessions);
+  } catch (err) {
+    console.error("[sessionController.getAllSessions]", err);
     return res.status(500).json({ message: "Erro interno do servidor." });
   }
 };

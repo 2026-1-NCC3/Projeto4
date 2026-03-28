@@ -12,6 +12,10 @@ exports.createSession = async (data, professionalId) => {
   return { message: "Sessão registrada com sucesso.", id: result.id };
 };
 
+exports.getAllSessions = async () => {
+  return await sessionModel.getAll();
+};
+
 /**
  * Retorna todo o prontuário de um paciente.
  */

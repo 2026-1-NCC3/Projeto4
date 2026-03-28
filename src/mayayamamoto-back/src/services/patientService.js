@@ -1,20 +1,53 @@
 const patientModel = require("../models/patientModel");
+const userModel = require("../models/userModel");
+const bcrypt = require("bcryptjs");
 const { isValidEmail, isValidDate } = require("../validators/validators");
 
 /**
  * Cria um novo paciente.
- * Valida e-mail e data de nascimento antes de persistir.
+ * 1. Cria o usuário na tabela 'users'
+ * 2. Cria o registro complementar na tabela 'patients'
  */
-exports.createPatient = async (data, createdBy) => {
+exports.createPatient = async (data) => {
   if (data.email && !isValidEmail(data.email)) {
     throw new Error("E-mail inválido.");
   }
-  if (!isValidDate(data.birthdate)) {
+  if (data.birthdate && !isValidDate(data.birthdate)) {
     throw new Error("Data de nascimento inválida. Use o formato YYYY-MM-DD.");
   }
 
-  const result = await patientModel.create(data, createdBy);
-  return { message: "Paciente cadastrado com sucesso.", id: result.id };
+  // Verifica se email já existe
+  const existingUser = await userModel.findByEmail(data.email);
+  if (existingUser) {
+    throw new Error("E-mail já cadastrado.");
+  }
+
+  // 1. Criar usuário com senha padrão (ex: Maya123) ou CPF se preferir
+  const defaultPassword = await bcrypt.hash("Maya123", 10);
+  
+  const userData = {
+    name: data.name,
+    email: data.email,
+    password: defaultPassword,
+    status: data.status || 1,
+    type: 3, // 3 = Paciente
+    phone: data.phone || null,
+    birthdate: data.birthdate || null
+  };
+
+  const userResult = await userModel.register(userData);
+  const userId = userResult.id;
+
+  // 2. Criar registro na tabela de pacientes
+  const patientData = {
+    id: userId,
+    name: data.name,
+    notes: data.notes || ""
+  };
+
+  await patientModel.create(patientData);
+
+  return { message: "Paciente cadastrado com sucesso.", id: userId };
 };
 
 /**
@@ -43,12 +76,17 @@ exports.updatePatient = async (id, data) => {
   if (data.email && !isValidEmail(data.email)) {
     throw new Error("E-mail inválido.");
   }
-  if (!isValidDate(data.birthdate)) {
+  if (data.birthdate && !isValidDate(data.birthdate)) {
     throw new Error("Data de nascimento inválida. Use o formato YYYY-MM-DD.");
   }
 
+  // 1. Atualiza dados na tabela 'users'
+  await userModel.update(id, data);
+
+  // 2. Atualiza dados na tabela 'patients'
   const result = await patientModel.update(id, data);
-  if (result.changed === 0) throw new Error("Paciente não encontrado.");
+  
+  if (result.changes === 0) throw new Error("Paciente não encontrado.");
   return { message: "Paciente atualizado com sucesso." };
 };
 

@@ -2,11 +2,27 @@ const router = require("express").Router();
 const prescriptionController = require("../controllers/prescriptionController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 
-router.use(authMiddleware);
+// Buscar prescrições de um paciente (usado pelo app mobile)
+router.get(
+  "/patient/:patientId",
+  authMiddleware,
+  prescriptionController.getByPatient
+);
 
-router.post("/",                          prescriptionController.createPrescription);
-router.get("/patient/:patientId",         prescriptionController.getPrescriptionsByPatient);
-router.put("/:id",                        prescriptionController.updatePrescription);
-router.delete("/:id",                     prescriptionController.deletePrescription);
+// Cadastrar prescrição (usado pela web)
+router.post("/", authMiddleware, prescriptionController.create);
+
+// Desativar prescrição (usado pela web)
+router.patch(
+  "/:prescriptionId/deactivate",
+  authMiddleware,
+  prescriptionController.deactivate
+);
+
+// Atualizar prescrição
+router.put("/:prescriptionId", authMiddleware, prescriptionController.update);
+
+// Remover prescrição
+router.delete("/:prescriptionId", authMiddleware, prescriptionController.delete);
 
 module.exports = router;

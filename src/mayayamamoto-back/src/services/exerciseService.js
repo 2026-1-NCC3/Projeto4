@@ -1,59 +1,47 @@
-const exerciseModel = require("../models/exerciseModel");
-const { isValidMediaType } = require("../validators/validators");
+const { db } = require("../config/database");
 
-/**
- * Cria um novo exercício no banco da clínica.
- */
-exports.createExercise = async (data, createdBy) => {
-  if (!data.title?.trim()) {
-    throw new Error("O título do exercício é obrigatório.");
-  }
-  if (data.mediaType && !isValidMediaType(data.mediaType)) {
-    throw new Error("Tipo de mídia inválido. Use 'video' ou 'image'.");
-  }
-
-  const result = await exerciseModel.create(data, createdBy);
-  return { message: "Exercício criado com sucesso.", id: result.id };
+exports.getAll = () => {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM exercises ORDER BY exercise_id", [], (err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
 };
 
-/**
- * Retorna todos os exercícios.
- * Aceita search para filtrar por título ou tag.
- */
-exports.getExercises = async (filters) => {
-  return await exerciseModel.getAll(filters);
+exports.create = (
+  title,
+  description,
+  tags,
+  media_url,
+  media_type,
+  createdBy
+) => {
+  return new Promise((resolve, reject) => {
+    const sql = `INSERT INTO exercises 
+      (exercise_title, exercise_description, exercise_tags, exercise_media_url, exercise_media_type, created_by)
+      VALUES (?, ?, ?, ?, ?, ?)`;
+    db.run(
+      sql,
+      [title, description, tags, media_url, media_type || "image", createdBy],
+      function (err) {
+        if (err) reject(err);
+        else
+          resolve({ message: "Exercício criado com sucesso", id: this.lastID });
+      }
+    );
+  });
 };
 
-/**
- * Retorna um exercício pelo ID.
- */
-exports.getExerciseById = async (id) => {
-  const exercise = await exerciseModel.findById(id);
-  if (!exercise) throw new Error("Exercício não encontrado.");
-  return exercise;
-};
-
-/**
- * Atualiza um exercício.
- */
-exports.updateExercise = async (id, data) => {
-  if (!data.title?.trim()) {
-    throw new Error("O título do exercício é obrigatório.");
-  }
-  if (data.mediaType && !isValidMediaType(data.mediaType)) {
-    throw new Error("Tipo de mídia inválido. Use 'video' ou 'image'.");
-  }
-
-  const result = await exerciseModel.update(id, data);
-  if (result.changed === 0) throw new Error("Exercício não encontrado.");
-  return { message: "Exercício atualizado com sucesso." };
-};
-
-/**
- * Remove um exercício.
- */
-exports.deleteExercise = async (id) => {
-  const result = await exerciseModel.delete(id);
-  if (result.deleted === 0) throw new Error("Exercício não encontrado.");
-  return { message: "Exercício removido com sucesso." };
+exports.remove = (exerciseId) => {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "DELETE FROM exercises WHERE exercise_id = ?",
+      [exerciseId],
+      (err) => {
+        if (err) reject(err);
+        else resolve();
+      }
+    );
+  });
 };

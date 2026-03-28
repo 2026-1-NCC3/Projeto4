@@ -1,69 +1,67 @@
 const prescriptionService = require("../services/prescriptionService");
 
-/** POST /prescriptions */
-exports.createPrescription = async (req, res) => {
+exports.getByPatient = async (req, res) => {
   try {
-    const { patientId, exerciseId } = req.body;
-    if (!patientId || !exerciseId) {
-      return res.status(400).json({ message: "patientId e exerciseId são obrigatórios." });
-    }
-    const result = await prescriptionService.createPrescription(req.body, req.user.id);
+    const { patientId } = req.params;
+    const result = await prescriptionService.getByPatient(patientId);
+    return res.status(200).json(result);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Erro interno", error: error.message });
+  }
+};
+
+exports.create = async (req, res) => {
+  try {
+    const { patient_id, exercise_id, frequency_per_week, instructions } =
+      req.body;
+    const prescribedBy = req.user.id;
+    const result = await prescriptionService.create(
+      patient_id,
+      exercise_id,
+      frequency_per_week,
+      instructions,
+      prescribedBy
+    );
     return res.status(201).json(result);
-  } catch (err) {
-    if (err.message.includes("não encontrad") || err.message.includes("deve ser")) {
-      return res.status(400).json({ message: err.message });
-    }
-    console.error("[prescriptionController.createPrescription]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Erro interno", error: error.message });
   }
 };
 
-/** GET /prescriptions/patient/:patientId */
-exports.getPrescriptionsByPatient = async (req, res) => {
+exports.deactivate = async (req, res) => {
   try {
-    const prescriptions = await prescriptionService.getPrescriptionsByPatient(
-      Number(req.params.patientId)
-    );
-    return res.status(200).json(prescriptions);
-  } catch (err) {
-    if (err.message === "Paciente não encontrado.") {
-      return res.status(404).json({ message: err.message });
-    }
-    console.error("[prescriptionController.getPrescriptionsByPatient]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+    const { prescriptionId } = req.params;
+    await prescriptionService.deactivate(prescriptionId);
+    return res
+      .status(200)
+      .json({ message: "Prescrição desativada com sucesso" });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Erro interno", error: error.message });
   }
 };
 
-/** PUT /prescriptions/:id */
-exports.updatePrescription = async (req, res) => {
+exports.update = async (req, res) => {
   try {
-    const result = await prescriptionService.updatePrescription(
-      Number(req.params.id),
-      req.body
-    );
+    const { prescriptionId } = req.params;
+    const result = await prescriptionService.update(Number(prescriptionId), req.body);
     return res.status(200).json(result);
-  } catch (err) {
-    if (err.message === "Prescrição não encontrada.") {
-      return res.status(404).json({ message: err.message });
-    }
-    if (err.message.includes("deve ser")) {
-      return res.status(400).json({ message: err.message });
-    }
-    console.error("[prescriptionController.updatePrescription]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro ao atualizar prescrição", error: error.message });
   }
 };
 
-/** DELETE /prescriptions/:id */
-exports.deletePrescription = async (req, res) => {
+exports.delete = async (req, res) => {
   try {
-    const result = await prescriptionService.deletePrescription(Number(req.params.id));
-    return res.status(200).json(result);
-  } catch (err) {
-    if (err.message === "Prescrição não encontrada.") {
-      return res.status(404).json({ message: err.message });
-    }
-    console.error("[prescriptionController.deletePrescription]", err);
-    return res.status(500).json({ message: "Erro interno do servidor." });
+    const { prescriptionId } = req.params;
+    await prescriptionService.delete(Number(prescriptionId));
+    return res.status(200).json({ message: "Prescrição removida com sucesso" });
+  } catch (error) {
+    return res.status(500).json({ message: "Erro ao remover prescrição", error: error.message });
   }
 };

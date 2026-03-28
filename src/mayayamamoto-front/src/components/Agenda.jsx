@@ -1,59 +1,133 @@
-import { useState } from "react";
-
-// Mock inicial
-const MOCK_SESSIONS = [
-  { id: 1, patient: "Ana Paula Silva", date: "2026-03-10", time: "09:00", type: "Fisioterapia Motora", status: "agendado" },
-  { id: 2, patient: "João Marcos", date: "2026-03-11", time: "10:30", type: "Avaliação Inicial", status: "agendado" },
-  { id: 3, patient: "Beatriz Oliveira", date: "2026-03-09", time: "14:00", type: "RPG", status: "concluido" },
-  { id: 4, patient: "Carlos Alberto", date: "2026-03-15", time: "16:00", type: "Pilates", status: "cancelado" },
-];
+import { useState, useEffect } from "react";
+import { endpoints } from "../services/api";
 
 export default function Agenda() {
-  const [sessions, setSessions] = useState(MOCK_SESSIONS);
+  const [sessions, setSessions] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   
   // Estados para o Modal de Nova Sessão
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newSession, setNewSession] = useState({
-    patient: "",
+    patientId: "",
+    professionalId: "", // Agora permite escolher médico
     date: "",
     time: "",
-    type: "Fisioterapia Motora",
-    status: "agendado"
+    notes: ""
   });
+
+  const loadData = async () => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    const headers = { "Authorization": `Bearer ${token}` };
+    try {
+      const [sessRes, patRes, docRes] = await Promise.all([
+        fetch(endpoints.getSessions, { headers }),
+        fetch(endpoints.getPatients, { headers }),
+        fetch(endpoints.getDoctors, { headers })
+      ]);
+
+      const [sessData, patData, docData] = await Promise.all([
+        sessRes.json(),
+        patRes.json(),
+        docRes.json()
+      ]);
+
+      if (Array.isArray(sessData)) setSessions(sessData);
+      if (Array.isArray(patData)) setPatients(patData);
+      if (Array.isArray(docData)) setDoctors(docData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleCreateSession = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    
+    try {
+      const res = await fetch(endpoints.getSessions, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          patientId: Number(newSession.patientId),
+          professionalId: newSession.professionalId ? Number(newSession.professionalId) : undefined,
+          date: `${newSession.date} ${newSession.time}:00`,
+          notes: newSession.notes
+        })
+      });
+
+      if (res.ok) {
+        setIsModalOpen(false);
+        setNewSession({ patientId: "", professionalId: "", date: "", time: "", notes: "" });
+        loadData();
+      } else {
+        const data = await res.json();
+        alert(data.message || "Erro ao agendar sessão");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId) => {
+    if (!window.confirm("Deseja realmente excluir este agendamento?")) return;
+    
+    const token = localStorage.getItem("token");
+    try {
+      const res = await fetch(`${endpoints.getSessions}/${sessionId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setSessions(prev => prev.filter(s => s.session_id !== sessionId));
+      } else {
+        const data = await res.json();
+        alert(data.message || "Erro ao excluir sessão.");
+      }
+    } catch (err) { console.error(err); }
+  };
 
   // Função para formatar e dar contexto à data
   const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return { label: "Data Indefinida", color: "text-slate-400" };
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    const sessionDate = new Date(dateStr + "T00:00:00");
+    // dateStr vem como "YYYY-MM-DD HH:MM:SS"
+    const [d, t] = dateStr.split(" ");
+    const sessionDate = new Date(d + "T00:00:00");
     const diffTime = sessionDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    const [year, month, day] = dateStr.split("-");
+    const [year, month, day] = d.split("-");
     const formatted = `${day}/${month}/${year}`;
+    const timeFormatted = t ? t.substring(0, 5) : "";
 
-    if (diffDays === 0) return { label: "Hoje", color: "text-rose-500 font-black" };
-    if (diffDays === 1) return { label: "Amanhã", color: "text-orange-500 font-bold" };
-    if (diffDays < 0) return { label: formatted, color: "text-slate-400 font-medium" };
+    if (diffDays === 0) return { label: "Hoje", color: "text-rose-500 font-black", time: timeFormatted };
+    if (diffDays === 1) return { label: "Amanhã", color: "text-orange-500 font-bold", time: timeFormatted };
+    if (diffDays < 0) return { label: formatted, color: "text-slate-400 font-medium", time: timeFormatted };
     
-    return { label: formatted, color: "text-slate-600 font-bold" };
-  };
-
-  const handleCreateSession = (e) => {
-    e.preventDefault();
-    const id = sessions.length + 1;
-    setSessions([{ id, ...newSession }, ...sessions]);
-    setIsModalOpen(false);
-    setNewSession({ patient: "", date: "", time: "", type: "Fisioterapia Motora", status: "agendado" });
+    return { label: formatted, color: "text-slate-600 font-bold", time: timeFormatted };
   };
 
   const filtered = sessions.filter(s => {
-    const matchSearch = s.patient.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = statusFilter === "todos" || s.status === statusFilter;
-    return matchSearch && matchStatus;
+    const name = s.patient_name || "";
+    const matchSearch = name.toLowerCase().includes(search.toLowerCase());
+    // Por enquanto o back não tem status na tabela sessions, vamos assumir agendado
+    return matchSearch;
   });
 
   return (
@@ -90,64 +164,51 @@ export default function Agenda() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        <div className="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-          {["todos", "agendado", "concluido", "cancelado"].map((s) => (
-            <button
-              key={s}
-              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize
-                ${statusFilter === s 
-                  ? "bg-maya-light text-maya-blue font-semibold"
-                  : "text-slate-500 hover:bg-slate-50"
-                }`}
-              onClick={() => setStatusFilter(s)}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* ── Lista de Sessões ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filtered.map((session) => {
-          const dateInfo = formatDisplayDate(session.date);
+        {loading ? (
+           <div className="col-span-full py-20 text-center text-slate-400 animate-pulse font-bold">Carregando agenda...</div>
+        ) : filtered.length > 0 ? filtered.map((session) => {
+          const dateInfo = formatDisplayDate(session.session_date);
           return (
-            <div key={session.id} className="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200 transition-all cursor-pointer group flex flex-col justify-between min-h-[220px]">
+            <div key={session.session_id} className="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200 transition-all cursor-pointer group flex flex-col justify-between min-h-[220px]">
               <div>
                 <div className="flex justify-between items-start mb-5">
                   <div className="flex flex-col">
                     <span className={`text-sm uppercase tracking-wider ${dateInfo.color}`}>{dateInfo.label}</span>
-                    <span className="text-2xl font-black text-maya-blue">{session.time}</span>
+                    <span className="text-2xl font-black text-maya-blue">{dateInfo.time}</span>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider
-                    ${session.status === "agendado" ? "bg-blue-100 text-blue-700" : 
-                      session.status === "concluido" ? "bg-emerald-100 text-emerald-700" : 
-                      "bg-rose-100 text-rose-700"}`}>
-                    {session.status}
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700`}>
+                    Agendado
                   </span>
                 </div>
 
                 <div className="space-y-1 mb-6">
-                  <h3 className="text-lg font-bold text-slate-800 line-clamp-1">{session.patient}</h3>
-                  <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-maya-blue">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-                    </svg>
-                    {session.type}
+                  <h3 className="text-lg font-bold text-slate-800 line-clamp-1">{session.patient_name}</h3>
+                  <p className="text-xs text-slate-500 font-medium flex items-center gap-1.5 italic">
+                    {session.session_notes || "Sem observações para esta sessão."}
                   </p>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
-                <button className="text-xs font-bold text-slate-400 hover:text-rose-500 transition-colors">Cancelar</button>
+                <button 
+                  onClick={() => handleDeleteSession(session.session_id)}
+                  className="text-xs font-bold text-slate-400 hover:text-rose-500 transition-colors"
+                >
+                  Excluir
+                </button>
                 <button className="px-4 py-2 bg-slate-50 text-maya-blue text-xs font-bold rounded-lg hover:bg-maya-light transition-all">
-                  Iniciar Sessão
+                  Ver Detalhes
                 </button>
               </div>
             </div>
           );
-        })}
+        }) : (
+          <div className="col-span-full py-20 text-center text-slate-400 italic">Nenhuma sessão encontrada para os critérios selecionados.</div>
+        )}
       </div>
 
       {/* ── Modal Nova Sessão ── */}
@@ -165,13 +226,31 @@ export default function Agenda() {
             <form onSubmit={handleCreateSession} className="p-6 space-y-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-500 uppercase ml-1">Paciente</label>
-                <input 
+                <select 
                   required
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all"
-                  placeholder="Nome completo do paciente"
-                  value={newSession.patient}
-                  onChange={(e) => setNewSession({...newSession, patient: e.target.value})}
-                />
+                  value={newSession.patientId}
+                  onChange={(e) => setNewSession({...newSession, patientId: e.target.value})}
+                >
+                  <option value="">Selecione um paciente</option>
+                  {patients.map(p => (
+                    <option key={p.patient_id} value={p.patient_id}>{p.patient_name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Médico Responsável</label>
+                <select 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all"
+                  value={newSession.professionalId}
+                  onChange={(e) => setNewSession({...newSession, professionalId: e.target.value})}
+                >
+                  <option value="">Meu perfil (logado)</option>
+                  {doctors.map(d => (
+                    <option key={d.user_id} value={d.user_id}>{d.user_name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -198,18 +277,13 @@ export default function Agenda() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Tipo de Atendimento</label>
-                <select 
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all appearance-none"
-                  value={newSession.type}
-                  onChange={(e) => setNewSession({...newSession, type: e.target.value})}
-                >
-                  <option>Fisioterapia Motora</option>
-                  <option>Avaliação Inicial</option>
-                  <option>RPG</option>
-                  <option>Pilates</option>
-                  <option>Pós-Operatório</option>
-                </select>
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Notas da Sessão</label>
+                <textarea 
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-maya-blue transition-all resize-none h-24"
+                  placeholder="Ex: Avaliação pós-operatória de joelho..."
+                  value={newSession.notes}
+                  onChange={(e) => setNewSession({...newSession, notes: e.target.value})}
+                />
               </div>
 
               <button 

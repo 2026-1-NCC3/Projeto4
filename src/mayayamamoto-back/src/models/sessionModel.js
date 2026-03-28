@@ -34,6 +34,32 @@ exports.create = (data, professionalId) => {
 };
 
 /**
+ * Retorna todas as sessões cadastradas no sistema.
+ * Útil para a visão de Agenda global.
+ */
+exports.getAll = () => {
+  return new Promise((resolve, reject) => {
+    const sql = `
+      SELECT
+        s.session_id,
+        s.session_notes,
+        s.session_date,
+        s.created_at,
+        p.patient_name,
+        u.user_name AS professional_name
+      FROM sessions s
+      INNER JOIN patients p ON p.patient_id = s.patient_id
+      INNER JOIN users    u ON u.user_id    = s.professional_id
+      ORDER BY s.session_date DESC
+    `;
+    db.all(sql, [], (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows);
+    });
+  });
+};
+
+/**
  * Retorna todas as sessões de um paciente, ordenadas da mais recente para a mais antiga.
  * Inclui o nome do profissional que registrou a sessão
  */

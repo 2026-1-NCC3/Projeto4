@@ -6,12 +6,21 @@ const { db } = require("../config/database");
 exports.create = (data) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      INSERT INTO execution_logs (prescription_id, patient_id, pain_level, observations)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO execution_logs (prescription_id, patient_id, exercise_id, series, repetitions, pain_level, mobility_level, observations)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     db.run(
       sql,
-      [data.prescriptionId, data.patientId, data.painLevel ?? 0, data.observations || null],
+      [
+        data.prescriptionId, 
+        data.patientId, 
+        data.exerciseId || null,
+        data.series || 0,
+        data.repetitions || 0,
+        data.painLevel ?? 0, 
+        data.mobilityLevel ?? 5, 
+        data.observations || null
+      ],
       function (err) {
         if (err) return reject(err);
         resolve({ id: this.lastID });
@@ -30,10 +39,15 @@ exports.getByPatient = (patientId) => {
       SELECT
         l.log_id,
         l.pain_level,
+        l.mobility_level,
+        l.series,
+        l.repetitions,
         l.observations,
         l.executed_at,
         e.exercise_title,
-        e.exercise_id
+        e.exercise_id,
+        e.exercise_media_url,
+        e.exercise_media_type
       FROM execution_logs l
       INNER JOIN prescriptions p ON p.prescription_id = l.prescription_id
       INNER JOIN exercises     e ON e.exercise_id     = p.exercise_id

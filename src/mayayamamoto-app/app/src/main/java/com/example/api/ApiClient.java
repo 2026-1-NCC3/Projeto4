@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
 
     // URL do backend (ajustar conforme rede)
-    public static final String BASE_URL = "http://192.168.15.177:3000";
+    public static final String BASE_URL = "https://hfk9lk-3000.csb.app/";
     private static Retrofit instance;
 
     public static Retrofit getInstance() {

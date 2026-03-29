@@ -225,14 +225,13 @@
         app:layout_constraintEnd_toEndOf="parent">
 
 
-        <!-- Botão Ver Vídeo — Intent Implícita -->
         <Button
             android:id="@+id/btnVerVideo"
             android:layout_width="0dp"
             android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:text="▶ Ver Vídeo"
+            android:text="🖼 Ver Imagem"
             android:textColor="#FF7B6B"
             android:backgroundTint="#FFE0DC"
             android:fontFamily="@font/robotobold" />

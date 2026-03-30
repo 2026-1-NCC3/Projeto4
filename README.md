@@ -20,15 +20,37 @@
 </p>
 
 
-De um a dois parágrafos sobre o que é seu projeto e o que ele faz.
+O AlongApp é um projeto desenvolvido pelo grupo Los Meninos dos Back, formado por estudantes de Ciência da Computação da FECAP, como parte do Projeto Integrador (PI).
 <br><br>
+A proposta consiste na criação de uma solução digital para apoiar a rotina clínica da fisioterapeuta Maya Yoshiko Yamamoto, especialista em Reeducação Postural Global (RPG).
+O sistema foi idealizado para resolver problemas relacionados à falta de padronização no acompanhamento dos pacientes, à dispersão de informações clínicas e à dificuldade de monitoramento da evolução dos tratamentos.
+<br><br>
+
 Meu projeto ajuda estudantes FECAP a configurarem seus githubs.
 <br><br>
 May the force be with you!
 <br><br>
+A solução é composta por três principais módulos integrados:
 
+## Componentes do Sistema
+
+- **Aplicativo Mobile (Paciente):** Permite ao paciente acessar seus exercícios prescritos, visualizar conteúdos explicativos (como vídeos e imagens), registrar a execução das atividades e acompanhar sua evolução ao longo do tratamento.
+
+- **Módulo Web (Profissional/Admin):** Painel administrativo utilizado pela fisioterapeuta para gerenciar pacientes, prontuários eletrônicos, exercícios e prescrições, além de acompanhar indicadores de desempenho e evolução clínica.
+
+- **Backend (API) e Banco de Dados:** Responsável pelo processamento das regras de negócio, autenticação, controle de acesso, armazenamento seguro das informações e integração entre o aplicativo mobile e o sistema web.
 ## 🛠 Estrutura de pastas
-
+<br><br>
+O AlongApp tem como objetivo central modernizar a gestão clínica e otimizar o acompanhamento terapêutico, por meio da centralização de informações e da digitalização de processos, transformando o que antes era manual e descentralizado em uma plataforma digital integrada, segura e eficiente — trazendo benefícios tanto para a profissional quanto para seus pacientes e promovendo mais organização, praticidade e qualidade no atendimento fisioterapêutico, com impacto direto em melhores resultados clínicos
+<br><br>
+Equipe do Projeto
+Arthur Loreto (Desenvolvimento Web)
+Breno Groba (Desenvolvimento Web)
+Gustavo Archangelo (Desenvolvimento Mobile)
+Luiz Antônio (Desenvolvimento Mobile)
+<br><br>
+<br><br>
+<br><br>
 📦Raiz<br>
 ┃<br>
 ┃ ┣ 📂documentos<br>

@@ -51,6 +51,7 @@ public class PlanoFragment extends Fragment {
 
     // Lista de exercícios do paciente
     private RecyclerView recyclerExercicios;
+    private CacheLocal cacheLocal;
     // Textos informativos no topo do fragment
     private TextView tvSaudacao, tvCargaSemanal, tvTotalExercicios;
     // Gerenciador de dados local
@@ -82,6 +83,7 @@ public class PlanoFragment extends Fragment {
         // Exibe a saudação personalizada com o nome do paciente
         configurarSaudacao();
         // Busca os exercícios do paciente no backend
+        cacheLocal = new CacheLocal(requireContext());
         carregarExercicios();
     }
 
@@ -117,9 +119,9 @@ public class PlanoFragment extends Fragment {
                         if (!isAdded()) return; // Ignora se o Fragment não estiver mais na tela
 
                         if (resp.isSuccessful() && resp.body() != null) {
-                            // Atualiza a lista com as prescrições recebidas
+                            cacheLocal.gravarPlano(resp.body());
                             atualizarLista(resp.body());
-                        } else {
+                        }else {
                             // Exibe mensagem de erro se a resposta não foi bem-sucedida
                             Toast.makeText(requireContext(),
                                     "Não foi possível carregar os exercícios.", Toast.LENGTH_SHORT).show();
@@ -129,9 +131,21 @@ public class PlanoFragment extends Fragment {
                     // Chamado quando há falha de conexão (sem internet, timeout, etc.)
                     @Override
                     public void onFailure(Call<List<PrescricaoResponse>> call, Throwable t) {
-                        if (!isAdded()) return; // Ignora se o Fragment não estiver mais na tela
-                        Toast.makeText(requireContext(),
-                                "Sem conexão. Verifique sua internet.", Toast.LENGTH_SHORT).show();
+                        if (!isAdded()) return;
+
+                        List<PrescricaoResponse> planoOffline = cacheLocal.lerPlano();
+
+                        if (!planoOffline.isEmpty()) {
+                            Toast.makeText(requireContext(),
+                                    "Sem conexão. Exibindo dados salvos localmente.",
+                                    Toast.LENGTH_SHORT).show();
+
+                            atualizarLista(planoOffline);
+                        } else {
+                            Toast.makeText(requireContext(),
+                                    "Sem conexão e sem dados salvos.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
     }

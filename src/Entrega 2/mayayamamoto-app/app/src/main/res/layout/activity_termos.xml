@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <TextView
+        android:id="@+id/tvHeaderTermos"
+        android:layout_width="0dp"
+        android:fontFamily="@font/robotoregular"
+        android:layout_height="wrap_content"
+        android:background="#FF7B6B"
+        android:text="Termos e Consentimento"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:paddingTop="52dp"
+        android:paddingBottom="20dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ScrollView
+        android:id="@+id/scrollTermos"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tvHeaderTermos"
+        app:layout_constraintBottom_toTopOf="@id/layoutAceite"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/robotoregular"
+            android:text="TERMOS DE USO E POLÍTICA DE PRIVACIDADE\n\nEste aplicativo coleta e processa dados pessoais de saúde para fins de acompanhamento fisioterapêutico, conforme a Lei Geral de Proteção de Dados (LGPD – Lei nº 13.709/2018).\n\n1. DADOS COLETADOS\nColetamos: nome, e-mail, registros de execução de exercícios, indicadores de dor e mobilidade, e observações pessoais.\n\n2. FINALIDADE\nSeus dados são utilizados exclusivamente para monitorar sua evolução clínica e permitir que o profissional de saúde ajuste sua conduta terapêutica.\n\n3. COMPARTILHAMENTO\nSeus dados não são compartilhados com terceiros. Apenas você e seu profissional de saúde têm acesso.\n\n4. SEGURANÇA\nAdotamos medidas técnicas e organizacionais para proteger seus dados contra acesso não autorizado.\n\n5. SEUS DIREITOS\nVocê tem direito a acessar, corrigir ou excluir seus dados a qualquer momento, conforme previsto na LGPD.\n\n6. CONSENTIMENTO\nAo aceitar estes termos, você autoriza o tratamento dos seus dados conforme descrito acima.\n\nDúvidas? Entre em contato: privacidade@clinicamaya.com.br"
+            android:textSize="14sp"
+            android:textColor="#555555"
+            android:lineSpacingMultiplier="1.5"
+            android:padding="20dp" />
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/layoutAceite"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:padding="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+            <CheckBox
+                android:id="@+id/checkTermos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="#FF7B6B" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Li e aceito os Termos de Uso e a Política de Privacidade"
+                android:textSize="13sp"
+                android:textColor="#333333"
+                android:fontFamily="@font/robotobold"
+                android:layout_marginStart="12dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btnAceitar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="Continuar"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#FF7B6B"
+            android:fontFamily="@font/robotobold"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

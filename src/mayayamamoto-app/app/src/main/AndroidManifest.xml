@@ -61,7 +61,9 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:parentActivityName=".ExercicioDetalheActivity" />
+        <receiver android:name=".LembreteReceiver" />
 
     </application>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 </manifest>

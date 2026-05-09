@@ -69,6 +69,7 @@ public class PlanoFragment extends Fragment {
                                            Response<List<PrescricaoResponse>> resp) {
                         if (!isAdded()) return;
                         if (resp.isSuccessful() && resp.body() != null) {
+                            dbHelper.gravarPlano(resp.body());
                             atualizarLista(resp.body());
                         } else {
                             Toast.makeText(requireContext(),
@@ -78,14 +79,14 @@ public class PlanoFragment extends Fragment {
                     @Override
                     public void onFailure(Call<List<PrescricaoResponse>> call, Throwable t) {
                         if (!isAdded()) return;
-                        List<PrescricaoResponse> cache = dbHelper.lerPlano();
-                        if (!cache.isEmpty()) {
-                            atualizarLista(cache);
+                        List<PrescricaoResponse> planoOffline = dbHelper.lerPlano();
+                        if (!planoOffline.isEmpty()) {
+                            atualizarLista(planoOffline);
                             Toast.makeText(requireContext(),
-                                    "Sem conexao. Exibindo dados salvos.", Toast.LENGTH_SHORT).show();
+                                    "Sem conexao. Exibindo dados salvos localmente.", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(requireContext(),
-                                    "Sem conexao.", Toast.LENGTH_SHORT).show();
+                                    "Sem conexao e sem dados salvos.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

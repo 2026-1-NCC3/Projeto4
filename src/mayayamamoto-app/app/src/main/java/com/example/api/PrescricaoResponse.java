@@ -1,48 +1,95 @@
-// Declara o pacote onde esta classe está localizada
 package com.example.api;
 
-// Classe que representa uma prescrição de exercício retornada pelo backend
-// O Gson mapeia automaticamente os campos JSON para os atributos desta classe
 public class PrescricaoResponse {
-    // ID único da prescrição no banco de dados
-    private int    prescription_id;
-    // Frequência semanal recomendada para o exercício (quantas vezes por semana)
-    private int    frequency_per_week;
-    // Instruções específicas do profissional para este exercício
+
+    private int prescription_id;
+    private int frequency_per_week;
     private String instructions;
-    // Status da prescrição: 1 = ativa, 0 = inativa
-    private int    active;
-    // ID do exercício prescrito
-    private int    exercise_id;
-    // Título/nome do exercício
+    private int active;
+    private int exercise_id;
     private String exercise_title;
-    // Descrição detalhada do exercício
     private String exercise_description;
-    // Tags do exercício separadas por vírgula (ex: "coluna,lombar")
     private String exercise_tags;
-    // URL da mídia (imagem ou vídeo) associada ao exercício
     private String exercise_media_url;
-    // Tipo da mídia: "image" ou "video"
     private String exercise_media_type;
 
-    // Retorna o ID da prescrição
-    public int    getPrescriptionId()       { return prescription_id; }
-    // Retorna a frequência semanal recomendada
-    public int    getFrequencyPerWeek()     { return frequency_per_week; }
-    // Retorna as instruções do exercício
-    public String getInstructions()         { return instructions; }
-    // Retorna true se a prescrição estiver ativa (active == 1)
-    public boolean isActive()               { return active == 1; }
-    // Retorna o ID do exercício
-    public int    getExerciseId()           { return exercise_id; }
-    // Retorna o título do exercício
-    public String getExerciseTitle()        { return exercise_title; }
-    // Retorna a descrição do exercício
-    public String getExerciseDescription()  { return exercise_description; }
-    // Retorna as tags do exercício
-    public String getExerciseTags()         { return exercise_tags; }
-    // Retorna a URL da mídia do exercício
-    public String getExerciseMediaUrl()     { return exercise_media_url; }
-    // Retorna o tipo da mídia ("image" ou "video")
-    public String getExerciseMediaType()    { return exercise_media_type; }
+    public int getPrescriptionId() {
+        return prescription_id;
+    }
+
+    public int getFrequencyPerWeek() {
+        return frequency_per_week;
+    }
+
+    public String getInstructions() {
+        return instructions;
+    }
+
+    public boolean isActive() {
+        return active == 1;
+    }
+
+    public int getExerciseId() {
+        return exercise_id;
+    }
+
+    public String getExerciseTitle() {
+        return exercise_title;
+    }
+
+    public String getExerciseDescription() {
+        return exercise_description;
+    }
+
+    public String getExerciseTags() {
+        return exercise_tags;
+    }
+
+    public String getExerciseMediaUrl() {
+        return exercise_media_url;
+    }
+
+    public String getExerciseMediaType() {
+        return exercise_media_type;
+    }
+
+    public void setPrescriptionId(int prescription_id) {
+        this.prescription_id = prescription_id;
+    }
+
+    public void setFrequencyPerWeek(int frequency_per_week) {
+        this.frequency_per_week = frequency_per_week;
+    }
+
+    public void setInstructions(String instructions) {
+        this.instructions = instructions;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active ? 1 : 0;
+    }
+
+    public void setExerciseId(int exercise_id) {
+        this.exercise_id = exercise_id;
+    }
+
+    public void setExerciseTitle(String exercise_title) {
+        this.exercise_title = exercise_title;
+    }
+
+    public void setExerciseDescription(String exercise_description) {
+        this.exercise_description = exercise_description;
+    }
+
+    public void setExerciseTags(String exercise_tags) {
+        this.exercise_tags = exercise_tags;
+    }
+
+    public void setExerciseMediaUrl(String exercise_media_url) {
+        this.exercise_media_url = exercise_media_url;
+    }
+
+    public void setExerciseMediaType(String exercise_media_type) {
+        this.exercise_media_type = exercise_media_type;
+    }
 }

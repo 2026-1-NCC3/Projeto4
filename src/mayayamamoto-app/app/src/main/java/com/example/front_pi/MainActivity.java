@@ -2,6 +2,10 @@
 package com.example.front_pi;
 
 // Importa Bundle para receber dados do estado salvo da Activity
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 
 // Importa AppCompatActivity — classe base das Activities
@@ -31,36 +35,36 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Faz o layout ocupar a área atrás da barra de status
-        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
-        // Define o layout XML desta Activity
-        setContentView(R.layout.activity_main);
 
-        // Conecta a variável à BottomNavigationView do layout
-        bottomNav = findViewById(R.id.bottomNavigation);
-
-        // Exibe o PlanoFragment como tela inicial (apenas na primeira criação da Activity)
-        if (savedInstanceState == null) {
-            carregarFragment(new PlanoFragment()); // Carrega o plano de exercícios como tela inicial
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1);
         }
 
-        // Configura o listener da barra de navegação — troca o Fragment ao clicar em um item
-        bottomNav.setOnItemSelectedListener(item -> {
-            Fragment fragment = null; // Fragment que será exibido
-            int id = item.getItemId(); // ID do item clicado
+        agendarNotificacao();
 
-            // Verifica qual item foi clicado e define o Fragment correspondente
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        setContentView(R.layout.activity_main);
+
+        bottomNav = findViewById(R.id.bottomNavigation);
+
+        if (savedInstanceState == null) {
+            carregarFragment(new PlanoFragment());
+        }
+
+        bottomNav.setOnItemSelectedListener(item -> {
+            Fragment fragment = null;
+            int id = item.getItemId();
+
             if (id == R.id.nav_plano) {
-                fragment = new PlanoFragment();    // Tela do plano de exercícios
+                fragment = new PlanoFragment();
             } else if (id == R.id.nav_historico) {
-                fragment = new HistoricoFragment(); // Tela do histórico de execuções
+                fragment = new HistoricoFragment();
             } else if (id == R.id.nav_perfil) {
-                fragment = new PerfilFragment();    // Tela do perfil do paciente
+                fragment = new PerfilFragment();
             }
 
-            // Se um Fragment válido foi selecionado, carrega-o na tela
             if (fragment != null) carregarFragment(fragment);
-            return true; // Confirma que o item foi selecionado com sucesso
+            return true;
         });
     }
 
@@ -77,5 +81,26 @@ public class MainActivity extends AppCompatActivity {
         ft.replace(R.id.fragmentContainer, fragment);
         // Confirma e executa a transação
         ft.commit();
+    }
+
+    private void agendarNotificacao() {
+        Intent intent = new Intent(this, LembreteReceiver.class);
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+
+        long tempo = System.currentTimeMillis() + 10000;
+
+        alarmManager.set(
+                AlarmManager.RTC_WAKEUP,
+                tempo,
+                pendingIntent
+        );
     }
 }

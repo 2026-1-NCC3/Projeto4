@@ -38,6 +38,7 @@ import retrofit2.Response;
 // Tela onde o paciente registra a execução de um exercício prescrito
 public class RegistroExecucaoActivity extends AppCompatActivity {
 
+    private CacheLocal cacheLocal;
     // Exibe o nome do exercício sendo registrado
     private TextView tvNomeExercicio, tvDorValor, tvMobilidadeValor;
     // Controles deslizantes para informar o nível de dor e mobilidade (escala 0–10)
@@ -62,6 +63,7 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        cacheLocal = new CacheLocal(this);
         // Faz o layout ocupar a área atrás da barra de status
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         // Define o layout XML desta Activity
@@ -182,31 +184,31 @@ public class RegistroExecucaoActivity extends AppCompatActivity {
         // Monta o objeto de requisição com todos os dados do registro
         LogRequest logRequest = new LogRequest(prescricaoId, patientId, exercicioId, seriesNum, repsNum, dor, mob, obs);
 
-        // Cria o serviço de API e envia o registro de forma assíncrona
+        cacheLocal.gravarExecucao(exercicioTitulo, dor, obs);
+
         ApiService api = ApiClient.getInstance().create(ApiService.class);
         api.salvarLog(logRequest, "Bearer " + token)
                 .enqueue(new Callback<Void>() {
-
-                    // Chamado quando o servidor responde
                     @Override
                     public void onResponse(Call<Void> call, Response<Void> resp) {
                         if (resp.isSuccessful()) {
-                            // Exibe confirmação e fecha a tela após salvar com sucesso
                             Toast.makeText(RegistroExecucaoActivity.this,
                                     "Execução registrada!", Toast.LENGTH_SHORT).show();
-                            finish(); // Volta para a tela de detalhes do exercício
+                            finish();
                         } else {
-                            // Exibe mensagem de erro se o servidor retornou falha
                             Toast.makeText(RegistroExecucaoActivity.this,
-                                    "Erro ao salvar registro.", Toast.LENGTH_SHORT).show();
+                                    "Registro salvo localmente, mas não enviado ao servidor.",
+                                    Toast.LENGTH_SHORT).show();
+                            finish();
                         }
                     }
 
-                    // Chamado quando há falha de conexão
                     @Override
                     public void onFailure(Call<Void> call, Throwable t) {
                         Toast.makeText(RegistroExecucaoActivity.this,
-                                "Erro de conexão.", Toast.LENGTH_SHORT).show();
+                                "Sem conexão. Registro salvo localmente.",
+                                Toast.LENGTH_SHORT).show();
+                        finish();
                     }
                 });
     }

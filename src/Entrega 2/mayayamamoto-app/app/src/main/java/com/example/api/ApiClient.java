@@ -10,7 +10,7 @@ import java.security.cert.X509Certificate;
 public class ApiClient {
 
     // 10.0.2.2:3000 endereço que o emulador acessa o banco local
-    public static final String BASE_URL = "https://hfk9lk-3000.csb.app/";
+    public static final String BASE_URL = "https://hfk9lk-3000.csb.app";
     private static Retrofit instance;
 
     public static Retrofit getInstance() {

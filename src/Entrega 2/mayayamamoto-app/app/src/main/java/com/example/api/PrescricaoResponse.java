@@ -1,4 +1,4 @@
-﻿package com.example.api;
+package com.example.api;
 
 public class PrescricaoResponse {
     private int    prescription_id;

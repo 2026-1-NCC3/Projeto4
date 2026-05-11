@@ -97,7 +97,7 @@ public class ExercicioDetalheActivity extends AppCompatActivity {
         btnRegistrar   = findViewById(R.id.btnRegistrarExecucao); // Botão "Registrar"
     }
 
-    // Preenche todas as views com os dados recebidos via Intent
+    // Preenche todas as views with os dados recebidos via Intent
     private void preencherDados() {
         // Exibe o título ou texto padrão se vier nulo
         tvNome.setText(titulo != null ? titulo : "Sem título");

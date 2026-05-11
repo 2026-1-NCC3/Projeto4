@@ -56,7 +56,14 @@ exports.getAll = ({ search } = {}) => {
 exports.findById = (id) => {
   return new Promise((resolve, reject) => {
     const sql = `
-      SELECT p.*, u.user_email as patient_email, u.user_phone as patient_phone, u.user_birthdate as patient_birthdate, u.user_status as patient_status
+      SELECT 
+        p.*, 
+        u.user_email as patient_email, 
+        u.user_phone as patient_phone, 
+        u.user_birthdate as patient_birthdate, 
+        u.user_status as patient_status,
+        (SELECT COUNT(*) FROM execution_logs l WHERE l.patient_id = p.patient_id) as total_sessions,
+        (SELECT AVG(pain_level) FROM execution_logs l WHERE l.patient_id = p.patient_id) as avg_pain
       FROM patients p
       INNER JOIN users u ON u.user_id = p.patient_id
       WHERE p.patient_id = ?`;

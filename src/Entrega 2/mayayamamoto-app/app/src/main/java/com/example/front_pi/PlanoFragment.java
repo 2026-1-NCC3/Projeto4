@@ -1,4 +1,4 @@
-﻿package com.example.front_pi;
+package com.example.front_pi;
 
 import android.content.Intent;
 import android.os.Bundle;

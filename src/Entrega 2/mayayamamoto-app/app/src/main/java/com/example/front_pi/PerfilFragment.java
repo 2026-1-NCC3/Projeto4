@@ -23,6 +23,14 @@ import androidx.annotation.Nullable;
 // Importa Fragment — componente de UI reutilizável
 import androidx.fragment.app.Fragment;
 
+import com.example.api.ApiClient;
+import com.example.api.ApiService;
+import com.example.api.PatientResponse;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 /**
  * Fragment de Perfil do Paciente.
  * Mostra dados do paciente logado e botão de logout.
@@ -64,29 +72,57 @@ public class PerfilFragment extends Fragment {
 
         // Preenche as views com os dados do paciente logado
         preencherPerfil();
+        // Busca dados atualizados da API
+        carregarDadosAPI();
         // Configura os eventos de clique nos botões
         configurarBotoes();
     }
 
-    // Preenche as views com os dados do paciente logado e suas estatísticas
+    // Preenche as views com os dados do paciente logado e estatísticas locais (fallback)
     private void preencherPerfil() {
         Paciente p = dataManager.getPacienteLogado();
-        if (p == null) return; // Não faz nada se não houver paciente logado
+        if (p == null) return;
 
-        // Exibe as iniciais do nome no avatar circular
         tvIniciais.setText(p.getIniciais());
-        // Exibe o nome completo do paciente
         tvNome.setText(p.getNome());
-        // Exibe o email do paciente
         tvEmail.setText(p.getEmail());
 
-        // Calcula e exibe a média de dor dos registros locais
+        // Estatísticas locais como fallback inicial
         double mediaDor = dataManager.getMediaDor();
-        // Exibe "Sem registros" se não houver dados, ou a média formatada
-        tvEstatisticaDor.setText(mediaDor < 0 ? "Sem registros" :
-                String.format("Média de dor: %.1f / 10", mediaDor));
-        // Exibe o total de exercícios marcados como executados
-        tvEstatisticaExec.setText("Sessões concluídas: " + dataManager.getTotalExecutados());
+        tvEstatisticaDor.setText(mediaDor < 0 ? "—" : String.format("%.1f / 10", mediaDor));
+        tvEstatisticaExec.setText(dataManager.getTotalExecutados() + " sessão(ões)");
+    }
+
+    private void carregarDadosAPI() {
+        Paciente p    = dataManager.getPacienteLogado();
+        String  token = dataManager.getToken();
+        if (p == null || token == null) return;
+
+        int patientId = Integer.parseInt(p.getId());
+        ApiService api = ApiClient.getInstance().create(ApiService.class);
+
+        api.getPatientDetails(patientId, "Bearer " + token).enqueue(new Callback<PatientResponse>() {
+            @Override
+            public void onResponse(Call<PatientResponse> call, Response<PatientResponse> resp) {
+                if (isAdded() && resp.isSuccessful() && resp.body() != null) {
+                    PatientResponse data = resp.body();
+                    
+                    // Atualiza estatísticas com dados REAIS do servidor
+                    if (data.getAvgPain() != null) {
+                        tvEstatisticaDor.setText(String.format("%.1f / 10", data.getAvgPain()));
+                    } else {
+                        tvEstatisticaDor.setText("Sem registros");
+                    }
+                    
+                    tvEstatisticaExec.setText(data.getTotalSessions() + " sessão(ões) concluída(s)");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<PatientResponse> call, Throwable t) {
+                // Em caso de falha, mantém os dados locais já preenchidos no preencherPerfil()
+            }
+        });
     }
 
     // Configura os eventos de clique nos botões de notificações e logout

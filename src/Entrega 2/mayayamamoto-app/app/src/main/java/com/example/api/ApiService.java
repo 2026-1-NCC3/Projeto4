@@ -32,4 +32,10 @@ public interface ApiService {
             @Path("patientId") int patientId,
             @Header("Authorization") String token
     );
+
+    @GET("patients/{patientId}")
+    Call<PatientResponse> getPatientDetails(
+            @Path("patientId") int patientId,
+            @Header("Authorization") String token
+    );
 }

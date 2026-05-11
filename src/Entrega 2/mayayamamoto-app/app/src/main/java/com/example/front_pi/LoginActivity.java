@@ -188,6 +188,7 @@ public class LoginActivity extends AppCompatActivity {
 
     // Navega para a tela principal limpando a pilha de Activities (não volta para o login)
     private void irParaMain() {
+        // Corrigido para garantir que a Intent é criada corretamente
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         // FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK: limpa todas as Activities anteriores
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

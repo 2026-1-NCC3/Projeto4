@@ -9,7 +9,9 @@ import java.security.cert.X509Certificate;
 
 public class ApiClient {
 
-    public static final String BASE_URL = "https://hfk9lk-3000.csb.app/";
+    // 10.0.2.2 é o endereço que o emulador usa para acessar o seu PC (localhost)
+    // Certifique-se de que o backend está rodando na porta 3000
+    public static final String BASE_URL = "http://10.0.2.2:3000/";
     private static Retrofit instance;
 
     public static Retrofit getInstance() {

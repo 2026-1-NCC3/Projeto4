@@ -184,7 +184,7 @@ Senha: senha123
 
 ## 📋 Licença/License
 
-<a href="https://github.com/2026-1-NCC3/Projeto4">Alongap</a> © 2026 by <a href="https://www.linkedin.com/in/breno-groba/">Breno Groba</a>, <a href="https://www.linkedin.com/in/artur-loreto/">Artur Loreto</a>, <a href="https://www.linkedin.com/in/gustavo-archangelo/">Gustavo Archangelo</a>, <a href="www.linkedin.com/in/luiizsilva/">Luiz Antonio Santos Silva</a>
+<a href="https://github.com/2026-1-NCC3/Projeto4">Alongap</a> © 2026 by <a href="https://www.linkedin.com/in/breno-groba/">Breno Groba</a>, <a href="https://www.linkedin.com/in/artur-loreto/">Artur Loreto</a>, <a href="https://www.linkedin.com/in/gustavo-archangelo/">Gustavo Archangelo</a>, <a href="www.linkedin.com/in/luiizsilva/">Luiz Antonio Santos Silva</a>, <a href="https://www.fecap.br/">FECAP</a>
 	is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;">
 
 ## 🎓 Referências
